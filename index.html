@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>KUDHIN SPLIT</title>
+<style>
+  :root{
+    --blue:#2196f3; --blue-100:#e6f0fa; --blue-200:#bbdefb; --blue-300:#90caf9;
+    --danger:#f44336; --ok:#4caf50; --warning:#ffeb3b; --text:#233244;
+    --radius:10px;
+  }
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--blue-100); font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--text); display:flex; justify-content:center; align-items:stretch;
+  }
+  /* container */
+  #app,#loginScreen{width:100%;max-width:420px;min-width:320px;height:100dvh;box-sizing:border-box;padding:8px;display:flex;flex-direction:column}
+  header{background:var(--blue);color:#fff;padding:10px 12px;border-radius:var(--radius);font-weight:700;font-size:16px;text-align:center}
+  main{flex:1;overflow:auto;padding:8px 0}
+  .card{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:8px;margin-bottom:8px}
+  input,select,button{width:100%;box-sizing:border-box;font-size:14px;padding:10px;border-radius:8px;margin:4px 0;border:1px solid #d9e3ef;outline:none}
+  input[type=text],input[type=number],select{text-transform:uppercase}
+  .row{display:flex;gap:8px}
+  .row> *{flex:1}
+  .stack{display:grid;gap:6px}
+  button{cursor:pointer;border:none}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-secondary{background:var(--blue-300);color:#002b55}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-ok{background:var(--ok);color:#fff}
+  nav{display:flex;gap:8px;justify-content:space-between;background:var(--blue);color:#fff;padding:10px;border-radius:var(--radius);position:sticky;bottom:0;margin-top:8px}
+  nav button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;padding:8px;border-radius:8px}
+  nav button.active{background:#fff;color:var(--blue);border-color:#fff;font-weight:700}
+  .tab{display:none}
+  .tab.active{display:block}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:8px;border-bottom:1px solid #e9f1fb}
+  th{background:var(--blue-200);font-weight:600}
+  .table-wrap{border:1px solid #e0e9f7;border-radius:8px;overflow:hidden;background:#fff}
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:16px}
+  .modal.open{display:flex}
+  .panel{width:min(420px,100%);background:#fff;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .modal h3{margin:4px 0 8px;font-size:15px}
+  .actions{display:flex;gap:8px;margin-top:8px}
+  .tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef6ff;border:1px solid #d8e8ff;font-size:12px}
+  .hint{font-size:12px;color:#586b82}
+  .small{font-size:12px;color:#586b82}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="stack">
+  <header>KUDHIN SPLIT</header>
+  <div class="card stack">
+    <strong>Login</strong>
+    <select id="loginSelect"><option value="">-- SELECT USER --</option></select>
+    <input id="loginMobile" type="text" placeholder="MOBILE NUMBER" />
+    <button class="btn-primary" onclick="login()">LOGIN</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <header>KUDHIN SPLIT</header>
+  <main>
+    <!-- Splitter -->
+    <section id="tab-splitter" class="tab active">
+      <div class="card stack">
+        <div class="row">
+          <button class="btn-primary" onclick="startAddPerson()">ADD PERSON</button>
+          <button class="btn-primary" onclick="openSharedPopup()">ADD SHARED ITEM</button>
+        </div>
+        <div class="row">
+          <button id="gstToggle" class="btn-secondary" onclick="toggleGST()">GST 8%</button>
+          <button class="btn-ok" onclick="openPreview()">PREVIEW & GENERATE</button>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <div class="row">
+          <label class="stack"><span class="hint">BILL DATE</span><input id="billDate" type="date" /></label>
+          <label class="stack"><span class="hint">PAYER</span><select id="payerSelect"><option value="">-- SELECT --</option></select></label>
+        </div>
+        <label class="stack"><span class="hint">VENDOR</span><select id="vendorSelect"><option value="">-- SELECT VENDOR --</option></select></label>
+        <div class="row">
+          <label class="stack"><span class="hint">SERVICE %</span><input id="servicePercent" type="number" placeholder="0" /></label>
+          <label class="stack"><span class="hint">MANUAL SERVICE (AMOUNT)</span><input id="manualService" type="number" placeholder="0" /></label>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <strong>Persons</strong>
+        <div class="table-wrap">
+          <table id="personTable"><thead><tr><th style="width:30%">Name</th><th>Items</th><th style="width:70px">Remove</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <strong>Shared Items</strong>
+        <div class="table-wrap">
+          <table id="sharedTable"><thead><tr><th>Item</th><th style="width:30%">Amount</th><th style="width:70px">Remove</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Owings -->
+    <section id="tab-owings" class="tab">
+      <div class="card stack">
+        <strong>Owings & Settlements</strong>
+        <div class="table-wrap">
+          <table id="owingsTable"><thead><tr><th>Bill</th><th>Date</th><th>Payer</th><th>Debtor</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="tab-settings" class="tab">
+      <div class="card stack">
+        <strong>Users</strong>
+        <ul id="userList" style="margin:0;padding-left:18px"></ul>
+        <span class="small">Users are fixed for login & payer selection.</span>
+      </div>
+      <div class="card stack">
+        <strong>Add Vendor</strong>
+        <input id="newVendor" type="text" placeholder="VENDOR NAME" />
+        <button class="btn-primary" onclick="addVendor()">ADD VENDOR</button>
+        <div id="vendorList" class="stack"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button id="nav-splitter" class="active" onclick="switchTab('splitter')">Splitter</button>
+    <button id="nav-owings" onclick="switchTab('owings')">Owings</button>
+    <button id="nav-settings" onclick="switchTab('settings')">Settings</button>
+  </nav>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal" aria-modal="true" role="dialog">
+  <div class="panel">
+    <h3 id="modal-title">Title</h3>
+    <div id="modal-body" class="stack"></div>
+    <div class="actions">
+      <button id="modal-primary" class="btn-primary">NEXT</button>
+      <button id="modal-cancel" class="btn-danger" onclick="closeModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ===== constants & storage keys ===== */
+const LS_USERS = "KUDHIN_users", LS_VENDORS="KUDHIN_vendors", LS_OWINGS="KUDHIN_owings", LS_BILLS="KUDHIN_bills";
+
+/* ===== app state ===== */
+let users = JSON.parse(localStorage.getItem(LS_USERS)) || [
+  {name:"MIUSHAAN", mobile:"9996912"},
+  {name:"RAYA", mobile:"9996912"},
+  {name:"ASLAN", mobile:"9996912"},
+  {name:"REESHA", mobile:"9996912"},
+  {name:"ZIPPE", mobile:"9996912"},
+  {name:"AFU", mobile:"9996912"},
+  {name:"APPAL", mobile:"9996912"},
+  {name:"IRUFAAN", mobile:"9996912"},
+  {name:"ULY", mobile:"9996912"}
+];
+let vendors = JSON.parse(localStorage.getItem(LS_VENDORS)) || [];
+let owings = JSON.parse(localStorage.getItem(LS_OWINGS)) || [];
+let bills = JSON.parse(localStorage.getItem(LS_BILLS)) || [];
+let billCounter = (bills[bills.length-1]?.billID || 0) + 1;
+
+let persons = [];        // [{name, items:[{item,amount}]}]
+let sharedItems = [];    // [{item,amount}]
+let gstEnabled = false;
+
+/* ===== helpers ===== */
+const el = sel => document.querySelector(sel);
+const toUpper = v => (v||"").toString().toUpperCase();
+const saveLS = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const showModal = ()=>el('#modal').classList.add('open');
+const hideModal = ()=>el('#modal').classList.remove('open');
+
+/* ===== init ===== */
+(function init(){
+  // populate selects and lists
+  updateLoginSelect(); updatePayerSelect(); renderUsers(); refreshVendorSelect(); refreshVendorList(); renderOwings();
+})();
+
+/* ===== login ===== */
+function updateLoginSelect(){
+  el('#loginSelect').innerHTML = `<option value="">-- SELECT USER --</option>` + users.map((u,i)=>`<option value="${i}">${u.name}</option>`).join('');
+}
+function login(){
+  const idx = parseInt(el('#loginSelect').value,10);
+  const mobile = toUpper(el('#loginMobile').value).trim();
+  if(Number.isInteger(idx) && users[idx] && toUpper(users[idx].mobile) === mobile){
+    el('#loginScreen').style.display = 'none'; el('#app').style.display = 'flex';
+  } else alert('INVALID CREDENTIALS');
+}
+
+/* ===== tabs ===== */
+function switchTab(tab){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el(`#tab-${tab}`).classList.add('active'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); el(`#nav-${tab}`).classList.add('active'); }
+
+/* ===== settings ===== */
+function renderUsers(){ el('#userList').innerHTML = users.map(u=>`<li>${u.name} (${u.mobile})</li>`).join(''); }
+function addVendor(){ const v = toUpper(el('#newVendor').value).trim(); if(!v) return alert('VENDOR REQUIRED'); if(vendors.includes(v)) return alert('VENDOR EXISTS'); vendors.push(v); saveLS(LS_VENDORS,vendors); el('#newVendor').value=''; refreshVendorSelect(); refreshVendorList(); }
+function refreshVendorSelect(){ el('#vendorSelect').innerHTML = `<option value="">-- SELECT VENDOR --</option>` + vendors.map(v=>`<option>${v}</option>`).join(''); }
+function refreshVendorList(){ el('#vendorList').innerHTML = vendors.map(v=>`<div class="tag">${v}</div>`).join(''); }
+
+/* ===== payer select ===== */
+function updatePayerSelect(){ el('#payerSelect').innerHTML = `<option value="">-- SELECT --</option>` + users.map(u=>`<option>${u.name}</option>`).join(''); }
+
+/* ===== GST ===== */
+function toggleGST(){ gstEnabled = !gstEnabled; el('#gstToggle').classList.toggle('gst-on', gstEnabled); }
+
+/* ===== render persons & shared ===== */
+function renderPersons(){
+  const tbody = el('#personTable tbody'); tbody.innerHTML = '';
+  persons.forEach((p,pi)=>{
+    const tr = document.createElement('tr');
+    const tdName = document.createElement('td'); tdName.textContent = p.name; tr.appendChild(tdName);
+
+    const tdItems = document.createElement('td');
+    if(p.items.length === 0){ const d = document.createElement('div'); d.className='small'; d.textContent='NO ITEMS'; tdItems.appendChild(d); }
+    else{
+      p.items.forEach((it,ii)=>{
+        const row = document.createElement('div'); row.className='row';
+        const label = document.createElement('div'); label.style.flex='1'; label.textContent = `${it.item}: ${Number(it.amount||0).toFixed(2)}`;
+        const rm = document.createElement('button'); rm.className='btn-danger'; rm.textContent='REMOVE';
+        rm.onclick = ()=>{ p.items.splice(ii,1); renderPersons(); };
+        row.appendChild(label); row.appendChild(rm); tdItems.appendChild(row);
+      });
+    }
+    tr.appendChild(tdItems);
+
+    const tdRem = document.createElement('td'); const rmBtn = document.createElement('button'); rmBtn.className='btn-danger'; rmBtn.textContent='REMOVE';
+    rmBtn.onclick = ()=>{ persons.splice(pi,1); renderPersons(); };
+    tdRem.appendChild(rmBtn); tr.appendChild(tdRem);
+    tbody.appendChild(tr);
+  });
+}
+
+function renderShared(){
+  const tbody = el('#sharedTable tbody'); tbody.innerHTML = '';
+  sharedItems.forEach((s,si)=>{
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td'); td1.textContent = s.item; tr.appendChild(td1);
+    const td2 = document.createElement('td'); td2.textContent = Number(s.amount||0).toFixed(2); tr.appendChild(td2);
+    const td3 = document.createElement('td'); const rm = document.createElement('button'); rm.className='btn-danger'; rm.textContent='REMOVE';
+    rm.onclick = ()=>{ sharedItems.splice(si,1); renderShared(); };
+    td3.appendChild(rm); tr.appendChild(td3);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===== multi-step add person ===== */
+let stepPerson=null, stepItem=null;
+function startAddPerson(){ stepPerson=null; stepItem=null; showSelectPerson(); }
+
+function openModal(title, bodyHTML, primaryText='NEXT', primaryHandler=null){
+  el('#modal-title').textContent = title;
+  el('#modal-body').innerHTML = bodyHTML;
+  const pbtn = el('#modal-primary'); pbtn.textContent = primaryText; pbtn.onclick = primaryHandler || (()=>{});
+  showModal();
+}
+function closeModal(){ hideModal(); }
+
+function showSelectPerson(){
+  const options = users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+  openModal('SELECT PERSON', `<select id="selPerson"><option value="">-- SELECT USER --</option>${options}</select>`, 'NEXT', ()=>{
+    const v = toUpper(el('#selPerson').value).trim(); if(!v) return alert('SELECT A USER'); stepPerson = v; showItemName();
+  });
+}
+
+function showItemName(){
+  openModal(`ADD ITEM FOR ${stepPerson}`, `<input id="itemName" type="text" placeholder="ITEM NAME" />`, 'NEXT', ()=>{
+    const v = toUpper(el('#itemName').value).trim(); if(!v) return alert('ENTER ITEM NAME'); stepItem = v; showItemPrice();
+  });
+}
+
+function showItemPrice(){
+  openModal(`ENTER PRICE FOR ${stepItem}`, `
+    <input id="itemPrice" type="number" placeholder="AMOUNT" />
+    <div class="actions" style="margin-top:6px;padding-top:6px;border-top:1px dashed #e5eefb">
+      <button class="btn-secondary" id="btnMore">ADD MORE ITEMS</button>
+      <button class="btn-primary" id="btnNextPerson">ADD NEXT PERSON</button>
+    </div>
+  `, 'SAVE ITEM', ()=>{
+    doAddItem(false);
+  });
+  el('#btnMore').onclick = ()=>doAddItem(false);
+  el('#btnNextPerson').onclick = ()=>doAddItem(true);
+}
+
+function doAddItem(nextPerson){
+  const price = parseFloat(el('#itemPrice').value) || 0;
+  if(!(price>0)) return alert('ENTER VALID AMOUNT');
+  let p = persons.find(x=>x.name===stepPerson);
+  if(!p){ p = {name: stepPerson, items:[]}; persons.push(p); }
+  p.items.push({item: stepItem, amount: price});
+  renderPersons();
+  if(nextPerson){ stepPerson=null; stepItem=null; showSelectPerson(); }
+  else { stepItem=null; showItemName(); }
+}
+
+/* ===== shared items popup ===== */
+function openSharedPopup(){
+  openModal('ADD SHARED ITEM', `<input id="sharedName" type="text" placeholder="ITEM NAME" /><input id="sharedAmt" type="number" placeholder="AMOUNT" />`, 'ADD', ()=>{
+    const n = toUpper(el('#sharedName').value).trim(); const a = parseFloat(el('#sharedAmt').value)||0;
+    if(!n) return alert('ENTER ITEM NAME'); if(!(a>0)) return alert('ENTER VALID AMOUNT'); sharedItems.push({item:n, amount:a}); renderShared(); closeModal();
+  });
+}
+
+/* ===== core totals logic (per-person proportional GST/service/manual splits) ===== */
+function computeTotalsDetailed(){
+  // subtotal_before_fees for each person = ownItemsTotal + sharedShare
+  const peopleCount = persons.length || 1;
+  // compute shared items total and per-person share (split equally)
+  const totalShared = sharedItems.reduce((s,it)=>s + Number(it.amount||0), 0);
+  // per person shared share BASE (equal split)
+  const sharedPerPerson = peopleCount ? (totalShared / peopleCount) : 0;
+
+  // compute base per person and subtotalBaseTotal (for proportional split of manual service)
+  const perPersonBase = persons.map(p=>{
+    const own = p.items.reduce((s,it)=>s + Number(it.amount||0), 0);
+    return { name:p.name, own, sharedShare: sharedPerPerson, baseBeforeFees: own + sharedPerPerson };
+  });
+
+  const totalBaseAll = perPersonBase.reduce((s,pp)=>s + pp.baseBeforeFees, 0) || 0.0000001; // avoid zero
+
+  // GST per person = baseBeforeFees * 0.08 (if enabled)
+  // Service% per person = baseBeforeFees * (servicePct/100)
+  // Manual service (fixed) split proportionally to baseBeforeFees: manualService * (baseBeforeFees/totalBaseAll)
+
+  const servicePct = parseFloat(el('#servicePercent').value) || 0;
+  const manualServiceTotal = parseFloat(el('#manualService').value) || 0;
+
+  const lines = perPersonBase.map(pp=>{
+    const gstAmt = gstEnabled ? (pp.baseBeforeFees * 0.08) : 0;
+    const svcPctAmt = pp.baseBeforeFees * (servicePct / 100);
+    const manualShare = (manualServiceTotal * (pp.baseBeforeFees / totalBaseAll));
+    const total = pp.baseBeforeFees + gstAmt + svcPctAmt + manualShare;
+    return {
+      name: pp.name,
+      itemsTotal: round2(pp.own),
+      sharedShare: round2(pp.sharedShare),
+      gstShare: round2(gstAmt),
+      svcPctShare: round2(svcPctAmt),
+      manualShare: round2(manualShare),
+      total: round2(total)
+    };
+  });
+
+  const grandTotal = round2(lines.reduce((s,l)=>s + l.total, 0));
+  return { lines, grandTotal, sharedPerPerson: round2(sharedPerPerson) };
+}
+
+function round2(n){ return Math.round((n + Number.EPSILON)*100)/100; }
+
+/* ===== preview popup with breakdown ===== */
+function openPreview(){
+  if(persons.length === 0) return alert('ADD AT LEAST ONE PERSON');
+  const vendor = el('#vendorSelect').value; if(!vendor) return alert('SELECT VENDOR');
+  const date = el('#billDate').value || '';
+  const payer = el('#payerSelect').value || '-';
+  const svcPct = parseFloat(el('#servicePercent').value) || 0;
+  const manualSvc = parseFloat(el('#manualService').value) || 0;
+
+  const { lines, grandTotal, sharedPerPerson } = computeTotalsDetailed();
+
+  const rowsHtml = lines.map(l=>{
+    return `<tr>
+      <td style="font-weight:700">${l.name}</td>
+      <td>
+        Items Total: ${l.itemsTotal.toFixed(2)}<br/>
+        Shared Share: ${l.sharedShare.toFixed(2)}<br/>
+        GST: ${l.gstShare.toFixed(2)}<br/>
+        Service % (${svcPct}%): ${l.svcPctShare.toFixed(2)}<br/>
+        Manual Share: ${l.manualShare.toFixed(2)}
+      </td>
+      <td style="text-align:right;font-weight:700">${l.total.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  openModal('PREVIEW BILL', `
+    <div class="stack">
+      <div class="row"><div class="tag">DATE: ${date || '-'}</div><div class="tag">VENDOR: ${vendor}</div></div>
+      <div class="row"><div class="tag">PAYER: ${payer}</div><div class="tag">GST: ${gstEnabled? 'ON':'OFF'}</div></div>
+      <div class="row"><div class="tag">SERVICE %: ${svcPct}</div><div class="tag">MANUAL SERVICE: ${manualSvc.toFixed(2)}</div></div>
+      <div class="tag">SHARED ITEMS TOTAL: ${sharedItems.reduce((s,i)=>s + Number(i.amount||0),0).toFixed(2)} | PER PERSON: ${sharedPerPerson.toFixed(2)}</div>
+      <div class="table-wrap" style="margin-top:8px">
+        <table><thead><tr><th>Person</th><th>Breakdown</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+        <tfoot><tr><th colspan="2" style="text-align:right">GRAND TOTAL</th><th style="text-align:right">${grandTotal.toFixed(2)}</th></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  `, 'CONFIRM & GENERATE PDF', confirmGenerate);
+}
+
+/* ===== confirm generate: persist bill, owings & create PDF ===== */
+function confirmGenerate(){
+  // gather meta
+  const billDate = el('#billDate').value || '';
+  const vendor = el('#vendorSelect').value || '';
+  const payer = el('#payerSelect').value || '';
+  const svcPct = parseFloat(el('#servicePercent').value) || 0;
+  const manualSvc = parseFloat(el('#manualService').value) || 0;
+
+  const billData = {
+    billID: billCounter,
+    date: billDate,
+    vendor, payer,
+    gst: gstEnabled, servicePercent: svcPct, manualService: manualSvc,
+    persons: JSON.parse(JSON.stringify(persons)),
+    sharedItems: JSON.parse(JSON.stringify(sharedItems))
+  };
+
+  // compute totals & update owings
+  const { lines } = computeTotalsDetailed();
+  lines.forEach(l=>{
+    if(l.name !== payer){
+      const owe = { billID: billCounter, date: billDate, payer, payee: l.name, amount: l.total, status: 'UNPAID' };
+      owings.push(owe);
+    }
+  });
+
+  bills.push(billData); saveLS(LS_BILLS, bills);
+  saveLS(LS_OWINGS, owings);
+
+  // PDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 10;
+  doc.setFontSize(16); doc.text('KUDHIN SPLIT BILL', 10, y); y += 8;
+  doc.setFontSize(12);
+  doc.text(`BILL ID: ${billCounter}`, 10, y); y += 6;
+  doc.text(`DATE: ${billDate}`, 10, y); y += 6;
+  doc.text(`VENDOR: ${vendor}`, 10, y); y += 6;
+  doc.text(`PAYER: ${payer}`, 10, y); y += 8;
+  doc.text(`GST 8%: ${gstEnabled ? 'YES' : 'NO'}`, 10, y); y += 6;
+  doc.text(`SERVICE %: ${svcPct}`, 10, y); y += 6;
+  doc.text(`MANUAL SERVICE TOTAL: ${manualSvc}`, 10, y); y += 8;
+
+  // shared
+  doc.text('SHARED ITEMS:', 10, y); y += 6;
+  if(sharedItems.length === 0){ doc.text('- NONE', 14, y); y += 6; }
+  else{ sharedItems.forEach(s=>{ doc.text(`- ${s.item}: ${Number(s.amount||0).toFixed(2)}`, 14, y); y += 6; }); }
+  y += 4;
+
+  // persons breakdown
+  const { lines: finalLines, grandTotal } = computeTotalsDetailed();
+  doc.text('PERSONS:', 10, y); y += 6;
+  finalLines.forEach(fl=>{
+    doc.text(`${fl.name}`, 10, y); y += 6;
+    doc.text(`- Items Total: ${fl.itemsTotal.toFixed(2)}`, 14, y); y += 6;
+    doc.text(`- Shared Share: ${fl.sharedShare.toFixed(2)}`, 14, y); y += 6;
+    doc.text(`- GST: ${fl.gstShare.toFixed(2)}`, 14, y); y += 6;
+    doc.text(`- Service%: ${fl.svcPctShare.toFixed(2)}`, 14, y); y += 6;
+    doc.text(`- Manual Share: ${fl.manualShare.toFixed(2)}`, 14, y); y += 6;
+    doc.text(`=> TOTAL: ${fl.total.toFixed(2)}`, 14, y); y += 8;
+    if(y > 270){ doc.addPage(); y = 10; } // pagination
+  });
+
+  doc.text(`GRAND TOTAL: ${grandTotal.toFixed(2)}`, 10, y);
+  doc.save(`Bill_${billDate.replaceAll('-','') || billCounter}.pdf`);
+
+  billCounter++;
+  renderOwings();
+  closeModal();
+}
+
+/* ===== owings render ===== */
+function renderOwings(){
+  const tbody = el('#owingsTable tbody'); tbody.innerHTML = '';
+  owings.forEach((o,idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${o.billID}</td><td>${o.date||'-'}</td><td>${o.payer}</td><td>${o.payee}</td><td>${Number(o.amount||0).toFixed(2)}</td><td>${o.status}</td><td></td>`;
+    const act = tr.lastElementChild;
+    const btn = document.createElement('button'); btn.className='btn-primary';
+    btn.textContent = (o.status === 'UNPAID') ? 'MARK PAID' : (o.status === 'PAID' ? 'CONFIRM RECEIVED' : 'DONE');
+    btn.disabled = (o.status === 'RECEIVED');
+    btn.onclick = ()=>{
+      if(o.status === 'UNPAID') o.status = 'PAID';
+      else if(o.status === 'PAID') o.status = 'RECEIVED';
+      saveLS(LS_OWINGS, owings);
+      renderOwings();
+    };
+    act.appendChild(btn);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===== init render helpers ===== */
+function renderPersons(){ /* function placeholder replaced by above */ }
+function renderShared(){ /* placeholder */ }
+renderPersons = function(){ /* override to keep single definition */ 
+  const tbody = el('#personTable tbody'); tbody.innerHTML = '';
+  persons.forEach((p,pi)=>{
+    const tr = document.createElement('tr');
+    const tdName = document.createElement('td'); tdName.textContent = p.name; tr.appendChild(tdName);
+    const tdItems = document.createElement('td');
+    if(p.items.length === 0){ const d = document.createElement('div'); d.className='small'; d.textContent='NO ITEMS'; tdItems.appendChild(d); }
+    else{ p.items.forEach((it,ii)=>{ const row = document.createElement('div'); row.className='row'; const label = document.createElement('div'); label.style.flex='1'; label.textContent = `${it.item}: ${Number(it.amount||0).toFixed(2)}`; const rm = document.createElement('button'); rm.className='btn-danger'; rm.textContent='REMOVE'; rm.onclick = ()=>{ p.items.splice(ii,1); renderPersons(); }; row.appendChild(label); row.appendChild(rm); tdItems.appendChild(row); }); }
+    tr.appendChild(tdItems);
+    const tdRem = document.createElement('td'); const rmBtn = document.createElement('button'); rmBtn.className='btn-danger'; rmBtn.textContent='REMOVE'; rmBtn.onclick = ()=>{ persons.splice(pi,1); renderPersons(); }; tdRem.appendChild(rmBtn); tr.appendChild(tdRem);
+    tbody.appendChild(tr);
+  });
+};
+renderShared = function(){ const tbody = el('#sharedTable tbody'); tbody.innerHTML = ''; sharedItems.forEach((s,si)=>{ const tr = document.createElement('tr'); const td1 = document.createElement('td'); td1.textContent = s.item; tr.appendChild(td1); const td2 = document.createElement('td'); td2.textContent = Number(s.amount||0).toFixed(2); tr.appendChild(td2); const td3 = document.createElement('td'); const rm = document.createElement('button'); rm.className='btn-danger'; rm.textContent='REMOVE'; rm.onclick = ()=>{ sharedItems.splice(si,1); renderShared(); }; td3.appendChild(rm); tr.appendChild(td3); tbody.appendChild(tr); }); };
+
+/* ===== initial UI population ===== */
+refreshVendorSelect(); refreshVendorList(); updatePayerSelect(); renderUsers(); renderOwings();
+
+</script>
+</body>
+</html>
