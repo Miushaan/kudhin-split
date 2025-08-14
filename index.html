@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
-<title>KUDHIN SPLIT — Modern</title>
+<title>KUDHIN SPLIT — Modern (Online)</title>
 <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 <style>
   :root{
@@ -84,7 +84,6 @@
 <body>
 
 <div class="app-shell" id="appShell">
-
   <!-- LOGIN SCREEN -->
   <div id="loginScreen">
     <div class="card">
@@ -107,8 +106,6 @@
 
   <!-- APP -->
   <div id="app" style="display:none;flex-direction:column;height:100%">
-
-    <!-- HEADER -->
     <header class="app-header">
       <div class="profile">
         <div class="avatar" id="avatarInitial">K</div>
@@ -127,7 +124,6 @@
     </header>
 
     <main class="app-main">
-      <!-- SPLITTER -->
       <section id="tab-splitter" class="card">
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="display:flex;gap:8px;align-items:center">
@@ -168,441 +164,97 @@
           <div id="personsList"></div>
           <div class="small" id="noPersonsHint" style="display:block;color:var(--muted)">No persons yet — add a person to begin.</div>
         </div>
-
-        <div style="margin-top:12px">
-          <div style="font-weight:700;margin-bottom:8px">Shared Items</div>
-          <div id="sharedList"></div>
-          <div class="small" id="noSharedHint" style="display:block;color:var(--muted)">No shared items — add shared items here.</div>
-        </div>
       </section>
 
-      <!-- OWINGS -->
-      <section id="tab-owings" class="card" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-weight:700">Owings & Settlements</div>
-          <div class="small" style="color:var(--muted)">Track who owes whom</div>
-        </div>
-        <div id="owingsArea" class="owings-grid"></div>
+      <section id="tab-owings" style="display:none" class="card">
+        <div style="font-weight:700;margin-bottom:8px">Owings / Settlements</div>
+        <div id="owingsGrid" class="owings-grid"></div>
       </section>
 
-      <!-- SETTINGS (opened via hamburger only) -->
-      <section id="tab-settings" class="card" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-weight:800">Users</div>
-            <div class="small" style="color:var(--muted)">Fixed users for login & payer selection</div>
-          </div>
-        </div>
-
-        <div style="margin-top:8px" id="userListArea"></div>
-
-        <div style="margin-top:12px">
-          <div style="font-weight:700">Add Vendor</div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <input id="newVendor" type="text" placeholder="Vendor name" />
-            <button class="btn btn-primary" onclick="addVendor()">Add</button>
-          </div>
-          <div id="vendorList" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px"></div>
-        </div>
-
-        <div style="margin-top:14px;display:flex;gap:8px">
-          <button class="btn btn-ghost" onclick="exportData()">Export JSON</button>
-          <button class="btn btn-ghost" onclick="clearAll()">Clear All</button>
-        </div>
-      </section>
     </main>
 
-    <!-- bottom nav (no Settings here) -->
     <nav class="app-nav">
-      <button id="nav-splitter" class="active" onclick="switchTab('splitter')">Splitter</button>
-      <button id="nav-owings" onclick="switchTab('owings')">Owings</button>
+      <button id="navSplitter" class="active" onclick="switchTab('splitter')">Splitter</button>
+      <button id="navOwings" onclick="switchTab('owings')">Owings</button>
+      <button id="navHistory" onclick="switchTab('history')">History</button>
     </nav>
-
   </div>
 </div>
-
-<!-- Modal -->
-<div id="modal" class="modal" aria-modal="true" role="dialog">
-  <div class="panel">
-    <h3 id="modal-title" style="margin:0 0 8px 0;font-size:16px">Title</h3>
-    <div id="modal-body"></div>
-    <div class="actions">
-      <button id="modal-cancel" class="btn btn-ghost" onclick="closeModal()">CANCEL</button>
-      <button id="modal-primary" class="btn btn-primary">NEXT</button>
-    </div>
-  </div>
-</div>
-
-<!-- jsPDF (for PDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-/* ===== storage keys & defaults ===== */
-const LS_USERS="KUDHIN_users", LS_VENDORS="KUDHIN_vendors", LS_OWINGS="KUDHIN_owings", LS_BILLS="KUDHIN_bills";
-let users = JSON.parse(localStorage.getItem(LS_USERS)) || [
-  {name:"MIUSHAAN", mobile:"9996912"},
-  {name:"RAYA", mobile:"9996912"},
-  {name:"ASLAN", mobile:"9996912"},
-  {name:"REESHA", mobile:"9996912"},
-  {name:"ZIPPE", mobile:"9996912"},
-  {name:"AFU", mobile:"9996912"},
-  {name:"APPAL", mobile:"9996912"},
-  {name:"IRUFAAN", mobile:"9996912"},
-  {name:"ULY", mobile:"9996912"}
-];
-let vendors = JSON.parse(localStorage.getItem(LS_VENDORS)) || [];
-let owings = JSON.parse(localStorage.getItem(LS_OWINGS)) || [];
-let bills = JSON.parse(localStorage.getItem(LS_BILLS)) || [];
-let billCounter = (bills[bills.length-1]?.billID || 0) + 1;
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgMCjeOJ4cx7Ghoas2p6yOZO2GCTZa7XIKVWPhfkGO4osSrF0yQBFmccIt5e-UNrgk/exec";
 
-/* runtime state */
-let persons = [];        // [{name, items:[{item,amount}]}]
-let sharedItems = [];    // [{item,amount}]
-let gstEnabled = false;
+  let users=[],vendors=[],bills=[],currentUser=null,owings=[],gstEnabled=false;
 
-/* helpers */
-const el = s => document.querySelector(s);
-const toUpper = v => (v||"").toString().toUpperCase();
-const saveLS = (k,v)=> localStorage.setItem(k, JSON.stringify(v));
-const showModal = ()=> el('#modal').classList.add('open');
-const hideModal = ()=> el('#modal').classList.remove('open');
-const round2 = n => Math.round((Number(n)+Number.EPSILON)*100)/100;
-const f2 = n => round2(n).toFixed(2);
-
-/* init */
-(function init(){
-  updateLoginSelect(); refreshVendorSelect(); refreshVendorList(); updatePayerSelect(); renderUsers(); renderOwings();
-  // hamburger menu
-  el('#hamburger').addEventListener('click', (e)=>{ e.stopPropagation(); el('#menuDropdown').style.display = (el('#menuDropdown').style.display==='block'?'none':'block'); });
-  document.addEventListener('click', ()=>{ el('#menuDropdown').style.display='none'; });
-})();
-
-/* ===== LOGIN ===== */
-function updateLoginSelect(){ el('#loginSelect').innerHTML = `<option value="">-- SELECT USER --</option>` + users.map((u,i)=>`<option value="${i}">${u.name}</option>`).join(''); }
-function login(){
-  const idx = parseInt(el('#loginSelect').value,10);
-  const mobile = toUpper(el('#loginMobile').value).trim();
-  if(Number.isInteger(idx) && users[idx] && toUpper(users[idx].mobile) === mobile){
-    const u = users[idx];
-    el('#profileName').textContent = u.name;
-    el('#profileMobile').textContent = u.mobile;
-    el('#avatarInitial').textContent = u.name.slice(0,1) || 'K';
-    el('#loginScreen').style.display = 'none';
-    el('#app').style.display = 'flex';
-    updatePayerSelect(); el('#payerSelect').value = u.name;
-  } else alert('INVALID CREDENTIALS');
-}
-function signOut(){
-  // reset transient state but keep saved data
-  persons = []; sharedItems = []; gstEnabled = false;
-  el('#gstToggle').classList.remove('active');
-  renderPersons(); renderShared();
-  // reset header
-  el('#profileName').textContent = '-'; el('#profileMobile').textContent='-'; el('#avatarInitial').textContent='K';
-  // show login
-  el('#app').style.display='none'; el('#loginScreen').style.display='block';
-  // close dropdown
-  el('#menuDropdown').style.display='none';
-  // clear login inputs
-  el('#loginMobile').value=''; el('#loginSelect').value='';
-}
-function openSettings(){ switchTab('settings', true); el('#menuDropdown').style.display='none'; }
-
-/* ===== tabs ===== */
-function switchTab(tab, fromMenu=false){
-  ['splitter','owings','settings'].forEach(t=> el(`#tab-${t}`).style.display='none');
-  el(`#tab-${tab}`).style.display='block';
-  // bottom nav only for splitter/owings
-  document.querySelectorAll('nav.app-nav button').forEach(b=>b.classList.remove('active'));
-  if(tab==='splitter') el('#nav-splitter').classList.add('active');
-  if(tab==='owings') el('#nav-owings').classList.add('active');
-}
-
-/* ===== settings & vendors ===== */
-function renderUsers(){ el('#userListArea').innerHTML = users.map(u=>`<div style="padding:8px;border-radius:8px;border:1px solid #f0f8ff;margin-bottom:6px">${u.name} <span class="small" style="color:var(--muted)">(${u.mobile})</span></div>`).join(''); }
-function addVendor(){
-  const v = toUpper(el('#newVendor').value).trim();
-  if(!v) return alert('VENDOR REQUIRED');
-  if(vendors.includes(v)) return alert('VENDOR EXISTS');
-  vendors.push(v); saveLS(LS_VENDORS,vendors); el('#newVendor').value=''; refreshVendorSelect(); refreshVendorList();
-}
-function refreshVendorSelect(){ el('#vendorSelect').innerHTML = `<option value="">-- SELECT VENDOR --</option>` + vendors.map(v=>`<option>${v}</option>`).join(''); }
-function refreshVendorList(){ el('#vendorList').innerHTML = vendors.map(v=>`<div class="tag">${v}</div>`).join(''); }
-function updatePayerSelect(){ el('#payerSelect').innerHTML = `<option value="">-- SELECT --</option>` + users.map(u=>`<option>${u.name}</option>`).join(''); }
-
-/* ===== GST toggle ===== */
-function toggleGST(){ gstEnabled = !gstEnabled; el('#gstToggle').classList.toggle('active', gstEnabled); }
-
-/* ===== persons & shared render ===== */
-function renderPersons(){
-  const wrap = el('#personsList'); wrap.innerHTML = '';
-  el('#noPersonsHint').style.display = persons.length ? 'none' : 'block';
-  persons.forEach((p,pi)=>{
-    const c = document.createElement('div'); c.className='list-row';
-    const left = document.createElement('div'); left.innerHTML = `<div class="title">${p.name}</div><div class="meta small">${p.items.length} items • ${f2(p.items.reduce((s,i)=>s+Number(i.amount||0),0))}</div>`;
-    const actions = document.createElement('div'); actions.className='list-actions';
-    const addBtn = document.createElement('button'); addBtn.className='btn btn-ghost'; addBtn.textContent='Add Item'; addBtn.onclick=()=> startAddItemFor(p.name);
-    const rmBtn = document.createElement('button'); rmBtn.className='remove-sm'; rmBtn.textContent='REMOVE'; rmBtn.onclick=()=>{ if(confirm('Remove this person?')){ persons.splice(pi,1); renderPersons(); } };
-    actions.appendChild(addBtn); actions.appendChild(rmBtn);
-    c.appendChild(left); c.appendChild(actions);
-
-    const box = document.createElement('div'); box.style.marginTop='8px';
-    if(p.items.length===0){ box.innerHTML = `<div class="small" style="color:var(--muted)">No items</div>`; }
-    else p.items.forEach((it,ii)=>{
-      const row = document.createElement('div'); row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;margin-top:6px;background:#fbfdff';
-      row.innerHTML = `<div><div style="font-weight:700">${it.item}</div><div class="small" style="color:var(--muted)">${f2(it.amount)}</div></div>`;
-      const rm = document.createElement('button'); rm.className='remove-sm'; rm.textContent='x'; rm.onclick=()=>{ p.items.splice(ii,1); renderPersons(); };
-      row.appendChild(rm); box.appendChild(row);
-    });
-
-    wrap.appendChild(c); wrap.appendChild(box);
-  });
-}
-function renderShared(){
-  const wrap = el('#sharedList'); wrap.innerHTML = '';
-  el('#noSharedHint').style.display = sharedItems.length ? 'none' : 'block';
-  sharedItems.forEach((s,si)=>{
-    const row = document.createElement('div'); row.className='list-row';
-    row.innerHTML = `<div><div class="title">${s.item}</div><div class="meta small">${f2(s.amount)}</div></div>`;
-    const rm = document.createElement('button'); rm.className='remove-sm'; rm.textContent='REMOVE'; rm.onclick=()=>{ sharedItems.splice(si,1); renderShared(); };
-    row.appendChild(rm); wrap.appendChild(row);
-  });
-}
-
-/* ===== multi-step add ===== */
-let stepPerson=null, stepItem=null;
-function startAddPerson(){ stepPerson=null; stepItem=null; showSelectPerson(); }
-function startAddItemFor(name){ stepPerson=name; stepItem=null; showItemName(); }
-
-function openModal(title, bodyHTML, primaryText='NEXT', primaryHandler=null){
-  el('#modal-title').textContent = title;
-  el('#modal-body').innerHTML = bodyHTML;
-  const pbtn = el('#modal-primary'); pbtn.textContent = primaryText; pbtn.onclick = primaryHandler || (()=>{});
-  showModal();
-}
-function closeModal(){ hideModal(); }
-
-function showSelectPerson(){
-  const options = users.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
-  openModal('SELECT PERSON', `<select id="selPerson" style="width:100%"><option value="">-- SELECT USER --</option>${options}</select>`, 'NEXT', ()=>{
-    const v = toUpper(document.querySelector('#selPerson').value).trim(); if(!v) return alert('SELECT A USER'); stepPerson=v; showItemName();
-  });
-}
-function showItemName(){
-  openModal(`ADD ITEM FOR ${stepPerson}`, `<input id="itemName" type="text" placeholder="ITEM NAME" />`, 'NEXT', ()=>{
-    const v = toUpper(document.querySelector('#itemName').value).trim(); if(!v) return alert('ENTER ITEM NAME'); stepItem=v; showItemPrice();
-  });
-}
-function showItemPrice(){
-  openModal(`ENTER PRICE FOR ${stepItem}`, `
-    <input id="itemPrice" type="number" placeholder="AMOUNT" />
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button id="btnMore" class="btn btn-ghost" style="flex:1">Add more items</button>
-      <button id="btnNextPerson" class="btn btn-primary" style="flex:1">Add next person</button>
-    </div>
-  `, 'SAVE', ()=> doAddItem(false));
-  document.querySelector('#btnMore').onclick = ()=> doAddItem(false);
-  document.querySelector('#btnNextPerson').onclick = ()=> doAddItem(true);
-}
-function doAddItem(nextPerson){
-  const price = parseFloat(document.querySelector('#itemPrice').value) || 0;
-  if(!(price>0)) return alert('ENTER VALID AMOUNT');
-  let p = persons.find(x=>x.name===stepPerson);
-  if(!p){ p = {name: stepPerson, items:[]}; persons.push(p); }
-  p.items.push({item: stepItem, amount: price});
-  renderPersons();
-  if(nextPerson){ stepPerson=null; stepItem=null; showSelectPerson(); }
-  else { stepItem=null; showItemName(); }
-}
-
-/* ===== shared popup ===== */
-function openSharedPopup(){
-  openModal('ADD SHARED ITEM', `<input id="sharedName" type="text" placeholder="ITEM NAME" /><input id="sharedAmt" type="number" placeholder="AMOUNT" style="margin-top:8px" />`, 'ADD', ()=>{
-    const n = toUpper(document.querySelector('#sharedName').value).trim(); const a = parseFloat(document.querySelector('#sharedAmt').value)||0;
-    if(!n) return alert('ENTER ITEM NAME'); if(!(a>0)) return alert('ENTER VALID AMOUNT'); sharedItems.push({item:n, amount:a}); renderShared(); closeModal();
-  });
-}
-
-/* ===== totals (manual service split equally; GST on subtotal) ===== */
-function computeTotalsDetailed(){
-  const peopleCount = persons.length || 1;
-  const totalShared = sharedItems.reduce((s,it)=>s + Number(it.amount||0), 0);
-  const sharedPerPerson = peopleCount ? (totalShared / peopleCount) : 0;
-  const manualTotal = parseFloat(el('#manualService').value) || 0;
-  const manualPerPerson = peopleCount ? (manualTotal / peopleCount) : 0;
-
-  const lines = persons.map(p=>{
-    const itemsTotal = p.items.reduce((s,it)=>s + Number(it.amount||0), 0);
-    const base = itemsTotal + sharedPerPerson + manualPerPerson;
-    const gst = gstEnabled ? (base * 0.08) : 0;
-    const total = base + gst;
-    return {
-      name: p.name,
-      itemsTotal: round2(itemsTotal),
-      sharedShare: round2(sharedPerPerson),
-      manualShare: round2(manualPerPerson),
-      gstShare: round2(gst),
-      total: round2(total)
-    };
-  });
-
-  const grandTotal = round2(lines.reduce((s,l)=>s + l.total, 0));
-  return { lines, grandTotal, sharedPerPerson: round2(sharedPerPerson), manualPerPerson: round2(manualPerPerson) };
-}
-
-/* ===== preview & PDF ===== */
-function openPreview(){
-  if(persons.length === 0) return alert('ADD AT LEAST ONE PERSON');
-  const vendor = el('#vendorSelect').value; if(!vendor) return alert('SELECT VENDOR');
-
-  const date = el('#billDate').value || '-';
-  const payer = el('#payerSelect').value || '-';
-  const manualSvc = parseFloat(el('#manualService').value)||0;
-
-  const { lines, grandTotal, sharedPerPerson, manualPerPerson } = computeTotalsDetailed();
-  const rows = lines.map(l=>`
-    <tr>
-      <td style="font-weight:700">${l.name}</td>
-      <td>
-        Items: ${f2(l.itemsTotal)}<br/>
-        Shared: ${f2(l.sharedShare)}<br/>
-        Manual: ${f2(l.manualShare)}<br/>
-        GST: ${f2(l.gstShare)}
-      </td>
-      <td style="text-align:right;font-weight:700">${f2(l.total)}</td>
-    </tr>`).join('');
-
-  openModal('PREVIEW BILL', `
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;justify-content:space-between;gap:8px">
-        <div class="tag">DATE: ${date}</div>
-        <div class="tag">VENDOR: ${vendor}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;gap:8px">
-        <div class="tag">PAYER: ${payer}</div>
-        <div class="tag">GST: ${gstEnabled? 'ON':'OFF'}</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;gap:8px">
-        <div class="tag">SHARED / PERS: ${f2(sharedPerPerson)}</div>
-        <div class="tag">MANUAL / PERS: ${f2(manualPerPerson)}</div>
-      </div>
-
-      <div class="table-wrap" style="margin-top:6px">
-        <table>
-          <thead><tr><th>Person</th><th>Breakdown</th><th style="text-align:right">Total</th></tr></thead>
-          <tbody>${rows}</tbody>
-          <tfoot><tr><th colspan="2" style="text-align:right">GRAND TOTAL</th><th style="text-align:right">${f2(grandTotal)}</th></tr></tfoot>
-        </table>
-      </div>
-    </div>
-  `, 'CONFIRM & GENERATE PDF', confirmGenerate);
-}
-
-function confirmGenerate(){
-  const billDate = el('#billDate').value || '';
-  const vendor = el('#vendorSelect').value || '';
-  const payer = el('#payerSelect').value || '';
-  const manualSvc = parseFloat(el('#manualService').value) || 0;
-
-  const billData = {
-    billID: billCounter,
-    date: billDate,
-    vendor, payer,
-    gst: gstEnabled, manualService: manualSvc,
-    persons: JSON.parse(JSON.stringify(persons)),
-    sharedItems: JSON.parse(JSON.stringify(sharedItems))
-  };
-
-  const { lines } = computeTotalsDetailed();
-  lines.forEach(l=>{
-    if(l.name !== payer){
-      owings.push({ billID: billCounter, date: billDate, payer, payee: l.name, amount: l.total, status: 'UNPAID' });
-    }
-  });
-
-  bills.push(billData); saveLS(LS_BILLS, bills); saveLS(LS_OWINGS, owings);
-
-  // PDF
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:'pt', format:'a4'});
-  let y = 40;
-  doc.setFontSize(18); doc.setFont("helvetica","bold"); doc.text('KUDHIN SPLIT BILL', 40, y); y += 22;
-  doc.setFontSize(11); doc.setFont("helvetica","normal");
-  doc.text(`BILL ID: ${billCounter}`, 40, y); y += 14;
-  doc.text(`DATE: ${billDate}`, 40, y); y += 14;
-  doc.text(`VENDOR: ${vendor}`, 40, y); y += 14;
-  doc.text(`PAYER: ${payer}`, 40, y); y += 16;
-  doc.text(`GST 8%: ${gstEnabled ? 'YES' : 'NO'}`, 40, y); y += 14;
-  doc.text(`MANUAL SERVICE TOTAL: ${manualSvc}`, 40, y); y += 18;
-
-  doc.text('SHARED ITEMS:', 40, y); y += 14;
-  if(sharedItems.length === 0){ doc.text('- NONE', 60, y); y += 14; }
-  else { sharedItems.forEach(s=>{ doc.text(`- ${s.item}: ${f2(s.amount)}`, 60, y); y += 14; }); }
-  y += 8;
-
-  doc.text('PERSONS:', 40, y); y += 14;
-  const { lines: finalLines, grandTotal } = computeTotalsDetailed();
-  finalLines.forEach(fl=>{
-    doc.text(`${fl.name}`, 40, y); y += 12;
-    doc.text(`Items: ${f2(fl.itemsTotal)}  Shared: ${f2(fl.sharedShare)}  Manual: ${f2(fl.manualShare)}`, 50, y); y += 12;
-    doc.text(`GST: ${f2(fl.gstShare)}  => TOTAL: ${f2(fl.total)}`, 50, y); y += 18;
-    if(y > 720){ doc.addPage(); y = 40; }
-  });
-  doc.text(`GRAND TOTAL: ${f2(grandTotal)}`, 40, y);
-  doc.save(`Bill_${billDate.replaceAll('-','') || billCounter}.pdf`);
-
-  billCounter++;
-  renderOwings();
-  closeModal();
-}
-
-/* ===== Owings (card layout) ===== */
-function renderOwings(){
-  const area = el('#owingsArea'); area.innerHTML = '';
-  if(owings.length === 0){
-    area.innerHTML = `<div style="padding:18px;border-radius:12px;border:1px dashed #e6f7ff;background:#fbfeff;text-align:center;color:var(--muted)">No owings yet — generate a bill to create owings.</div>`;
-    return;
+  // INITIAL LOAD
+  async function loadData(){
+    const resp = await fetch(WEB_APP_URL+"?action=read");
+    const data = await resp.json();
+    users = data.users || [];
+    vendors = data.vendors || [];
+    bills = data.bills || [];
+    owings = data.owings || [];
+    populateLogin();
+    populatePersons();
+    populateVendors();
   }
-  const grouped = {};
-  owings.forEach(o=>{ (grouped[o.billID] ||= {meta:o, items:[]}).items.push(o); });
-  Object.keys(grouped).reverse().forEach(bid=>{
-    const g = grouped[bid];
-    const card = document.createElement('div'); card.className='owing-card';
-    const top = document.createElement('div'); top.className='owing-top';
-    const left = document.createElement('div'); left.style.flex='1'; left.innerHTML = `<div style="font-weight:800">Bill #${g.meta.billID}</div><div class="small" style="color:var(--muted)">${g.meta.date || '-'}</div>`;
-    const right = document.createElement('div'); right.style.textAlign='right'; right.innerHTML = `<div style="font-weight:700">${g.meta.payer}</div><div class="small" style="color:var(--muted)">Payer</div>`;
-    top.appendChild(left); top.appendChild(right); card.appendChild(top);
 
-    g.items.forEach(it=>{
-      const row = document.createElement('div'); row.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:10px';
-      const l = document.createElement('div'); l.innerHTML = `<div style="font-weight:700">${it.payee}</div><div class="small" style="color:var(--muted)">Owes to ${it.payer}</div>`;
-      const r = document.createElement('div'); r.style.display='flex'; r.style.flexDirection='column'; r.style.alignItems='flex-end';
-      const amt = document.createElement('div'); amt.style.fontWeight='800'; amt.textContent = f2(it.amount);
-      const status = document.createElement('div'); status.className=`status ${it.status}`; status.textContent = it.status;
-      const actions = document.createElement('div'); actions.style.marginTop='8px';
-      const btn = document.createElement('button'); btn.className='btn btn-primary'; btn.textContent = (it.status==='UNPAID')?'Mark Paid':(it.status==='PAID'?'Confirm Received':'Done');
-      btn.disabled = (it.status==='RECEIVED');
-      btn.onclick = ()=>{ if(it.status==='UNPAID') it.status='PAID'; else if(it.status==='PAID') it.status='RECEIVED'; saveLS(LS_OWINGS, owings); renderOwings(); };
-      r.appendChild(amt); r.appendChild(status); r.appendChild(actions); actions.appendChild(btn);
-      row.appendChild(l); row.appendChild(r); card.appendChild(row);
-    });
-    area.appendChild(card);
-  });
-}
+  function populateLogin(){
+    const sel = document.getElementById("loginSelect");
+    sel.innerHTML = "";
+    users.forEach(u=>{sel.innerHTML+=`<option value="${u.mobile}">${u.name}</option>`});
+  }
 
-/* ===== utilities ===== */
-function exportData(){ const data={users,vendors,owings,bills}; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='kudhin_export.json'; a.click(); URL.revokeObjectURL(url); }
-function clearAll(){
-  if(!confirm('Clear all saved bills/owings/vendors? This cannot be undone.')) return;
-  localStorage.removeItem(LS_VENDORS); localStorage.removeItem(LS_BILLS); localStorage.removeItem(LS_OWINGS);
-  vendors=[]; bills=[]; owings=[]; refreshVendorSelect(); refreshVendorList(); renderOwings();
-}
+  function login(){
+    const mobile = document.getElementById("loginMobile").value;
+    const selMobile = document.getElementById("loginSelect").value;
+    const user = users.find(u=>u.mobile===selMobile && u.mobile===mobile);
+    if(!user){alert("Invalid login"); return;}
+    currentUser = user;
+    document.getElementById("loginScreen").style.display="none";
+    document.getElementById("app").style.display="flex";
+    document.getElementById("profileName").innerText=user.name;
+    document.getElementById("profileMobile").innerText=user.mobile;
+    document.getElementById("avatarInitial").innerText=user.name.charAt(0).toUpperCase();
+    populatePayerSelect();
+  }
 
-/* initial UI population */
-refreshVendorSelect(); refreshVendorList(); updatePayerSelect(); renderUsers(); renderOwings();
+  function signOut(){location.reload()}
 
-/* ESC closes modal */
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+  document.getElementById("hamburger").addEventListener("click",()=>{const d=document.getElementById("menuDropdown");d.style.display=d.style.display==="block"?"none":"block"})
+
+  function switchTab(tab){
+    document.getElementById("tab-splitter").style.display=tab==="splitter"?"block":"none";
+    document.getElementById("tab-owings").style.display=tab==="owings"?"block":"none";
+    document.getElementById("navSplitter").classList.toggle("active",tab==="splitter");
+    document.getElementById("navOwings").classList.toggle("active",tab==="owings");
+  }
+
+  function populatePersons(){const pl=document.getElementById("personsList");pl.innerHTML="";if(users.length===0){document.getElementById("noPersonsHint").style.display="block";return}document.getElementById("noPersonsHint").style.display="none";users.forEach(u=>{pl.innerHTML+=`<div class="list-row"><div class="title">${u.name}</div><div class="meta">${u.mobile}</div><div class="list-actions"><button class="remove-sm" onclick="removePerson('${u.mobile}')">✕</button></div></div>`})}
+
+  function populateVendors(){const sel=document.getElementById("vendorSelect");sel.innerHTML="";vendors.forEach(v=>{sel.innerHTML+=`<option value="${v.name}">${v.name}</option>`})}
+
+  function populatePayerSelect(){const sel=document.getElementById("payerSelect");sel.innerHTML="";users.forEach(u=>{sel.innerHTML+=`<option value="${u.name}">${u.name}</option>`})}
+
+  function removePerson(mobile){if(!confirm("Remove this person?"))return;users=users.filter(u=>u.mobile!==mobile);saveData()}
+
+  function startAddPerson(){let name=prompt("Enter name");if(!name)return;let mobile=prompt("Enter mobile");if(!mobile)return;users.push({name,mobile});saveData()}
+
+  function toggleGST(){gstEnabled=!gstEnabled;document.getElementById("gstToggle").classList.toggle("active",gstEnabled)}
+
+  function openSettings(){alert("Settings placeholder")}
+
+  function openSharedPopup(){alert("Shared item placeholder")}
+
+  function openPreview(){alert("Preview placeholder")}
+
+  async function saveData(){
+    const payload={action:"write",users,vendors,bills,owings};
+    await fetch(WEB_APP_URL,{method:"POST",body:JSON.stringify(payload)});
+    loadData();
+  }
+
+  window.onload=loadData;
 </script>
 </body>
 </html>
