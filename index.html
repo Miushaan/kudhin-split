@@ -2,101 +2,80 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
-<title>KUDHIN SPLIT — Modern (Online)</title>
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>KUDHIN SPLIT — Online</title>
 <style>
-  :root{
-    --blue: #1e88e5;
-    --blue-100: #eaf5ff;
-    --blue-200: #cfefff;
-    --bg: #f6fbff;
-    --card: #ffffff;
-    --muted: #6b7a8f;
-    --danger: #ef5350;
-    --ok: #43a047;
-    --radius: 14px;
-    --shadow: 0 8px 22px rgba(18,35,68,0.06);
-    --pill-h: 34px;
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  }
-  html,body{height:100%;margin:0;background:var(--bg);color:#122033;-webkit-font-smoothing:antialiased}
-  .app-shell{max-width:420px;margin:8px auto;height:calc(100dvh - 16px);display:flex;flex-direction:column;box-sizing:border-box;padding:8px}
-  header.app-header{
-    height:60px;display:flex;align-items:center;justify-content:space-between;gap:8px;
-    background:linear-gradient(180deg,var(--blue),#1976d2);color:#fff;padding:10px;border-radius:12px;
-    box-shadow:var(--shadow);position:relative;z-index:20;
-  }
-  .profile{display:flex;align-items:center;gap:10px}
-  .avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.12);font-weight:700;font-size:14px}
-  .profile .meta{line-height:1}
-  .profile .meta .name{font-weight:700;font-size:14px}
-  .profile .meta .mobile{font-size:12px;opacity:.9}
-  button.icon-btn{background:transparent;border:none;color:#fff;font-size:22px;padding:6px;border-radius:8px;cursor:pointer}
-  button.icon-btn:active{transform:scale(.98)}
-  .menu-dropdown{position:absolute;right:10px;top:56px;background:#fff;border:1px solid #e8f2ff;border-radius:10px;box-shadow:0 10px 30px rgba(6,16,35,.15);display:none;overflow:hidden;min-width:160px}
-  .menu-dropdown button{display:block;width:100%;background:#fff;border:none;text-align:left;padding:10px 12px;font-weight:600;cursor:pointer}
-  .menu-dropdown button:hover{background:#f6fbff}
-  main.app-main{flex:1;overflow:auto;padding:12px 0;}
-  .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(20,40,80,0.04)}
-  .row{display:flex;gap:8px;align-items:center}
-  .small{font-size:12px;color:var(--muted)}
-  input,select,button{font-family:inherit}
-  input[type=text],input[type=number],select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6f0fb;background:transparent;box-sizing:border-box;font-size:14px}
-  .btn{height:34px;border-radius:10px;padding:0 12px;border:none;cursor:pointer;font-weight:600}
-  .btn-primary{background:var(--blue);color:#fff}
-  .btn-ghost{background:transparent;border:1px solid rgba(18,40,70,0.08);color:#122033}
-  .btn-danger{background:var(--danger);color:#fff}
-  .btn-ok{background:var(--ok);color:#fff}
-  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:var(--blue-200);height:var(--pill-h);border:1px solid rgba(18,40,70,0.06);cursor:pointer;user-select:none}
-  .pill .dot{width:14px;height:14px;border-radius:50%;background:#fff;display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
-  .pill.active{background:linear-gradient(90deg,var(--ok),#2e8b57);color:#fff}
-  .table-wrap{overflow:hidden;border-radius:10px;border:1px solid #eef7ff}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:10px;text-align:left}
-  thead th{color:var(--muted);font-weight:700;border-bottom:1px solid #f3fbff}
-  tbody tr:nth-child(odd){background:#fbfdff}
-  .tag{display:inline-block;padding:6px 8px;border-radius:999px;background:#f1fbff;border:1px solid #e2f2ff;font-size:12px}
-  .list-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;border:1px solid #f0f7ff;margin-bottom:8px}
-  .list-row .title{font-weight:700}
-  .list-row .meta{font-size:12px;color:var(--muted)}
-  .list-actions{margin-left:auto;display:flex;gap:8px}
-  .remove-sm{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:6px;border-radius:8px;color:var(--danger);font-weight:700;cursor:pointer}
-  nav.app-nav{display:flex;gap:8px;justify-content:space-between;background:linear-gradient(180deg,var(--blue-100),#d6eefc);padding:8px;border-radius:12px;position:sticky;bottom:0;margin-top:8px}
-  nav.app-nav button{flex:1;border-radius:10px;padding:10px;border:none;background:transparent;color:#034a7a;font-weight:700}
-  nav.app-nav button.active{background:#fff;color:var(--blue);box-shadow:0 6px 16px rgba(30,120,210,0.12)}
-  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,8,23,0.45);z-index:80;padding:18px}
-  .modal.open{display:flex}
-  .panel{width:min(420px,100%);background:var(--card);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(6,16,35,0.2)}
-  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-  .owings-grid{display:grid;grid-template-columns:1fr;gap:10px}
-  .owing-card{display:flex;flex-direction:column;padding:12px;border-radius:12px;border:1px solid #eef7ff;background:linear-gradient(180deg,#fff,#fbfdff)}
-  .owing-top{display:flex;align-items:center;gap:8px}
-  .status{padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px}
-  .status.UNPAID{background:#fff0f0;color:#b00000;border:1px solid rgba(239,83,80,0.1)}
-  .status.PAID{background:#fff8e6;color:#a97a00;border:1px solid rgba(255,193,7,0.08)}
-  .status.RECEIVED{background:#eaf9ef;color:#1b8a57;border:1px solid rgba(76,175,80,0.08)}
-  @media (min-width:520px){
-    .app-shell{box-shadow:0 12px 36px rgba(6,16,35,0.06);border-radius:18px;padding:16px}
-  }
+:root{
+  --blue:#1e88e5;--blue-100:#eaf5ff;--blue-200:#cfefff;--bg:#f6fbff;--card:#fff;--muted:#6b7a8f;--danger:#ef5350;--ok:#43a047;
+  --radius:14px;--shadow:0 8px 22px rgba(18,35,68,0.06);--pill-h:34px;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+}
+html,body{margin:0;height:100%;background:var(--bg);color:#122033;-webkit-font-smoothing:antialiased;}
+.app-shell{max-width:420px;margin:8px auto;height:calc(100dvh - 16px);display:flex;flex-direction:column;padding:8px;box-sizing:border-box;}
+header.app-header{height:60px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(180deg,var(--blue),#1976d2);color:#fff;padding:10px;border-radius:12px;box-shadow:var(--shadow);}
+.profile{display:flex;align-items:center;gap:10px;}
+.avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.12);font-weight:700;font-size:14px;}
+.profile .meta{line-height:1;}
+.profile .meta .name{font-weight:700;font-size:14px;}
+.profile .meta .mobile{font-size:12px;opacity:.9;}
+button.icon-btn{background:transparent;border:none;color:#fff;font-size:22px;padding:6px;border-radius:8px;cursor:pointer;}
+button.icon-btn:active{transform:scale(.98);}
+.menu-dropdown{position:absolute;right:10px;top:56px;background:#fff;border:1px solid #e8f2ff;border-radius:10px;box-shadow:0 10px 30px rgba(6,16,35,.15);display:none;overflow:hidden;min-width:160px;}
+.menu-dropdown button{display:block;width:100%;background:#fff;border:none;text-align:left;padding:10px 12px;font-weight:600;cursor:pointer;}
+.menu-dropdown button:hover{background:#f6fbff;}
+main.app-main{flex:1;overflow:auto;padding:12px 0;}
+.card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(20,40,80,0.04);}
+.row{display:flex;gap:8px;align-items:center;}
+.small{font-size:12px;color:var(--muted);}
+input,select,button{font-family:inherit;}
+input[type=text],input[type=number],select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6f0fb;background:transparent;box-sizing:border-box;font-size:14px;}
+.btn{height:34px;border-radius:10px;padding:0 12px;border:none;cursor:pointer;font-weight:600;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-ghost{background:transparent;border:1px solid rgba(18,40,70,0.08);color:#122033;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-ok{background:var(--ok);color:#fff;}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:var(--blue-200);height:var(--pill-h);border:1px solid rgba(18,40,70,0.06);cursor:pointer;user-select:none;}
+.pill .dot{width:14px;height:14px;border-radius:50%;background:#fff;display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+.pill.active{background:linear-gradient(90deg,var(--ok),#2e8b57);color:#fff;}
+.table-wrap{overflow:hidden;border-radius:10px;border:1px solid #eef7ff;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th,td{padding:10px;text-align:left;}
+thead th{color:var(--muted);font-weight:700;border-bottom:1px solid #f3fbff;}
+tbody tr:nth-child(odd){background:#fbfdff;}
+.tag{display:inline-block;padding:6px 8px;border-radius:999px;background:#f1fbff;border:1px solid #e2f2ff;font-size:12px;}
+.list-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;border:1px solid #f0f7ff;margin-bottom:8px;}
+.list-row .title{font-weight:700;}
+.list-row .meta{font-size:12px;color:var(--muted);}
+.list-actions{margin-left:auto;display:flex;gap:8px;}
+.remove-sm{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:6px;border-radius:8px;color:var(--danger);font-weight:700;cursor:pointer;}
+nav.app-nav{display:flex;gap:8px;justify-content:space-between;background:linear-gradient(180deg,var(--blue-100),#d6eefc);padding:8px;border-radius:12px;position:sticky;bottom:0;margin-top:8px;}
+nav.app-nav button{flex:1;border-radius:10px;padding:10px;border:none;background:transparent;color:#034a7a;font-weight:700;}
+nav.app-nav button.active{background:#fff;color:var(--blue);box-shadow:0 6px 16px rgba(30,120,210,0.12);}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,8,23,0.45);z-index:80;padding:18px;}
+.modal.open{display:flex;}
+.panel{width:min(420px,100%);background:var(--card);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(6,16,35,0.2);}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+.owings-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.owing-card{display:flex;flex-direction:column;padding:12px;border-radius:12px;border:1px solid #eef7ff;background:linear-gradient(180deg,#fff,#fbfdff);}
+.owing-top{display:flex;align-items:center;gap:8px;}
+.status{padding:6px 8px;border-radius:999px;font-weight:700;font-size:12px;}
+.status.UNPAID{background:#fff0f0;color:#b00000;border:1px solid rgba(239,83,80,0.1);}
+.status.PAID{background:#fff8e6;color:#a97a00;border:1px solid rgba(255,193,7,0.08);}
+.status.RECEIVED{background:#eaf9ef;color:#1b8a57;border:1px solid rgba(76,175,80,0.08);}
 </style>
 </head>
 <body>
-
 <div class="app-shell" id="appShell">
-  <!-- LOGIN SCREEN -->
   <div id="loginScreen">
     <div class="card">
       <div style="font-weight:800;font-size:18px">KUDHIN SPLIT</div>
-      <div class="small" style="margin-top:4px">Simple, modern bill splitter</div>
+      <div class="small" style="margin-top:4px">Modern bill splitter online</div>
     </div>
-
     <div class="card">
       <div style="font-weight:700;margin-bottom:8px">Login</div>
       <label class="small">Select user</label>
       <select id="loginSelect" style="margin-bottom:8px"></select>
       <label class="small">Mobile (as password)</label>
-      <input id="loginMobile" type="text" placeholder="MOBILE NUMBER" />
+      <input id="loginMobile" type="text" placeholder="MOBILE NUMBER"/>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn btn-primary" style="flex:1" onclick="login()">LOGIN</button>
       </div>
@@ -104,7 +83,6 @@
     </div>
   </div>
 
-  <!-- APP -->
   <div id="app" style="display:none;flex-direction:column;height:100%">
     <header class="app-header">
       <div class="profile">
@@ -141,7 +119,7 @@
         <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">
           <div style="flex:1;min-width:150px">
             <label class="small">Bill date</label>
-            <input id="billDate" type="date" />
+            <input id="billDate" type="date"/>
           </div>
           <div style="flex:1;min-width:150px">
             <label class="small">Payer</label>
@@ -156,7 +134,7 @@
 
         <div style="margin-bottom:10px">
           <label class="small">Manual Service (Amount) — split <strong>equally</strong></label>
-          <input id="manualService" type="number" placeholder="0.00" />
+          <input id="manualService" type="number" placeholder="0.00"/>
         </div>
 
         <div style="margin-top:6px">
@@ -170,7 +148,6 @@
         <div style="font-weight:700;margin-bottom:8px">Owings / Settlements</div>
         <div id="owingsGrid" class="owings-grid"></div>
       </section>
-
     </main>
 
     <nav class="app-nav">
@@ -181,80 +158,67 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgMCjeOJ4cx7Ghoas2p6yOZO2GCTZa7XIKVWPhfkGO4osSrF0yQBFmccIt5e-UNrgk/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzgMCjeOJ4cx7Ghoas2p6yOZO2GCTZa7XIKVWPhfkGO4osSrF0yQBFmccIt5e-UNrgk/exec";
+let users=[],vendors=[],bills=[],owings=[],currentUser=null,gstEnabled=false;
 
-  let users=[],vendors=[],bills=[],currentUser=null,owings=[],gstEnabled=false;
+async function loadData(){
+  const resp = await fetch(WEB_APP_URL+"?action=read");
+  const data = await resp.json();
+  users = data.users || [];
+  vendors = data.vendors || [];
+  bills = data.bills || [];
+  owings = data.owings || [];
+  populateLogin(); populatePersons(); populateVendors(); populatePayerSelect();
+}
 
-  // INITIAL LOAD
-  async function loadData(){
-    const resp = await fetch(WEB_APP_URL+"?action=read");
-    const data = await resp.json();
-    users = data.users || [];
-    vendors = data.vendors || [];
-    bills = data.bills || [];
-    owings = data.owings || [];
-    populateLogin();
-    populatePersons();
-    populateVendors();
-  }
+function populateLogin(){const sel=document.getElementById("loginSelect");sel.innerHTML="";users.forEach(u=>{sel.innerHTML+=`<option value="${u.mobile}">${u.name}</option>`});}
+function login(){
+  const mobile=document.getElementById("loginMobile").value;
+  const selMobile=document.getElementById("loginSelect").value;
+  const user=users.find(u=>u.mobile===selMobile && u.mobile===mobile);
+  if(!user){alert("Invalid login");return;}
+  currentUser=user;
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("app").style.display="flex";
+  document.getElementById("profileName").innerText=user.name;
+  document.getElementById("profileMobile").innerText=user.mobile;
+  document.getElementById("avatarInitial").innerText=user.name.charAt(0).toUpperCase();
+}
+function signOut(){location.reload();}
+document.getElementById("hamburger").addEventListener("click",()=>{const d=document.getElementById("menuDropdown");d.style.display=d.style.display==="block"?"none":"block";});
+function switchTab(tab){document.getElementById("tab-splitter").style.display=tab==="splitter"?"block":"none";document.getElementById("tab-owings").style.display=tab==="owings"?"block":"none";document.getElementById("navSplitter").classList.toggle("active",tab==="splitter");document.getElementById("navOwings").classList.toggle("active",tab==="owings");}
+function populatePersons(){const pl=document.getElementById("personsList");pl.innerHTML="";if(users.length===0){document.getElementById("noPersonsHint").style.display="block";return;}document.getElementById("noPersonsHint").style.display="none";users.forEach(u=>{pl.innerHTML+=`<div class="list-row"><div class="title">${u.name}</div><div class="meta">${u.mobile}</div><div class="list-actions"><button class="remove-sm" onclick="removePerson('${u.mobile}')">✕</button></div></div>`});}
+function populateVendors(){const sel=document.getElementById("vendorSelect");sel.innerHTML="";vendors.forEach(v=>{sel.innerHTML+=`<option value="${v.name}">${v.name}</option>`});}
+function populatePayerSelect(){const sel=document.getElementById("payerSelect");sel.innerHTML="";users.forEach(u=>{sel.innerHTML+=`<option value="${u.name}">${u.name}</option>`});}
+function removePerson(mobile){if(!confirm("Remove this person?"))return;users=users.filter(u=>u.mobile!==mobile);saveData();populatePersons();}
+function startAddPerson(){let name=prompt("Enter name");if(!name)return;let mobile=prompt("Enter mobile");if(!mobile)return;users.push({name,mobile});saveData();populatePersons();}
+function toggleGST(){gstEnabled=!gstEnabled;document.getElementById("gstToggle").classList.toggle("active",gstEnabled);}
+function openSettings(){alert("Settings placeholder");}
+function openSharedPopup(){alert("Shared item placeholder");}
 
-  function populateLogin(){
-    const sel = document.getElementById("loginSelect");
-    sel.innerHTML = "";
-    users.forEach(u=>{sel.innerHTML+=`<option value="${u.mobile}">${u.name}</option>`});
-  }
+// PREVIEW + PDF
+function openPreview(){
+  let billDate=document.getElementById("billDate").value;
+  let payer=document.getElementById("payerSelect").value;
+  let vendor=document.getElementById("vendorSelect").value;
+  let manual=parseFloat(document.getElementById("manualService").value)||0;
+  let total=manual;
+  let content=`<h2 style="text-align:center">KUDHIN SPLIT BILL</h2>`;
+  content+=`<p>Date: ${billDate}</p><p>Payer: ${payer}</p><p>Vendor: ${vendor}</p><table border="1" width="100%"><tr><th>Person</th><th>Amount</th></tr>`;
+  users.forEach(u=>{let amt=(manual/users.length);if(gstEnabled)amt+=amt*0.08;total+=amt;content+=`<tr><td>${u.name}</td><td>${amt.toFixed(2)}</td></tr>`;});
+  content+=`</table><p>Total: ${total.toFixed(2)}</p>`;
+  const win=window.open("","Preview");win.document.write(content);win.document.close();
+  const { jsPDF } = window.jspdf; let doc = new jsPDF(); doc.html(content,{callback:function(){doc.save("KUDHIN_SPLIT_BILL.pdf");}});}
 
-  function login(){
-    const mobile = document.getElementById("loginMobile").value;
-    const selMobile = document.getElementById("loginSelect").value;
-    const user = users.find(u=>u.mobile===selMobile && u.mobile===mobile);
-    if(!user){alert("Invalid login"); return;}
-    currentUser = user;
-    document.getElementById("loginScreen").style.display="none";
-    document.getElementById("app").style.display="flex";
-    document.getElementById("profileName").innerText=user.name;
-    document.getElementById("profileMobile").innerText=user.mobile;
-    document.getElementById("avatarInitial").innerText=user.name.charAt(0).toUpperCase();
-    populatePayerSelect();
-  }
+// SAVE TO GOOGLE SHEETS
+async function saveData(){
+  const payload={action:"write",users,vendors,bills,owings};
+  await fetch(WEB_APP_URL,{method:"POST",body:JSON.stringify(payload)});
+}
 
-  function signOut(){location.reload()}
-
-  document.getElementById("hamburger").addEventListener("click",()=>{const d=document.getElementById("menuDropdown");d.style.display=d.style.display==="block"?"none":"block"})
-
-  function switchTab(tab){
-    document.getElementById("tab-splitter").style.display=tab==="splitter"?"block":"none";
-    document.getElementById("tab-owings").style.display=tab==="owings"?"block":"none";
-    document.getElementById("navSplitter").classList.toggle("active",tab==="splitter");
-    document.getElementById("navOwings").classList.toggle("active",tab==="owings");
-  }
-
-  function populatePersons(){const pl=document.getElementById("personsList");pl.innerHTML="";if(users.length===0){document.getElementById("noPersonsHint").style.display="block";return}document.getElementById("noPersonsHint").style.display="none";users.forEach(u=>{pl.innerHTML+=`<div class="list-row"><div class="title">${u.name}</div><div class="meta">${u.mobile}</div><div class="list-actions"><button class="remove-sm" onclick="removePerson('${u.mobile}')">✕</button></div></div>`})}
-
-  function populateVendors(){const sel=document.getElementById("vendorSelect");sel.innerHTML="";vendors.forEach(v=>{sel.innerHTML+=`<option value="${v.name}">${v.name}</option>`})}
-
-  function populatePayerSelect(){const sel=document.getElementById("payerSelect");sel.innerHTML="";users.forEach(u=>{sel.innerHTML+=`<option value="${u.name}">${u.name}</option>`})}
-
-  function removePerson(mobile){if(!confirm("Remove this person?"))return;users=users.filter(u=>u.mobile!==mobile);saveData()}
-
-  function startAddPerson(){let name=prompt("Enter name");if(!name)return;let mobile=prompt("Enter mobile");if(!mobile)return;users.push({name,mobile});saveData()}
-
-  function toggleGST(){gstEnabled=!gstEnabled;document.getElementById("gstToggle").classList.toggle("active",gstEnabled)}
-
-  function openSettings(){alert("Settings placeholder")}
-
-  function openSharedPopup(){alert("Shared item placeholder")}
-
-  function openPreview(){alert("Preview placeholder")}
-
-  async function saveData(){
-    const payload={action:"write",users,vendors,bills,owings};
-    await fetch(WEB_APP_URL,{method:"POST",body:JSON.stringify(payload)});
-    loadData();
-  }
-
-  window.onload=loadData;
+window.onload=loadData;
 </script>
 </body>
 </html>
