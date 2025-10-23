@@ -11,80 +11,80 @@
   table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
   th { background: #eee; }
-  input, select, button { padding: 5px; margin: 5px; }
-  .dashboard { margin-top: 20px; }
-  #entriesTable { display: none; margin-top: 10px; }
-  button.toggleEntries { margin-bottom: 10px; }
-  #dashboardChart, #categoryChart { max-width: 300px; max-height: 200px; margin-top: 10px; }
-  .summary { margin-top: 10px; }
+  input, select, button { padding: 8px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
+  input:focus, select:focus { outline: 2px solid #2196f3; }
+  button { cursor: pointer; background-color: #4caf50; color: white; border: none; }
+  button:hover { background-color: #45a049; }
+  .dashboard { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+  .summary { font-weight: bold; flex: 1; min-width: 200px; }
+  #dashboardChart { flex: 2; max-width: 600px; max-height: 250px; margin-left: 20px; }
+  .income { background-color: #e8f5e9; }
+  .expense { background-color: #ffebee; }
+  #entriesTable tbody tr:hover { background-color: #f1f1f1; }
+  .form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .form-row input, .form-row select { flex: 1; min-width: 120px; }
 </style>
 </head>
 <body>
 
 <h2>Income & Expense Tracker</h2>
 
+<div class="dashboard">
+  <div class="summary">
+    <p>Total Income: <span id="totalIncome">0</span></p>
+    <p>Total Expense: <span id="totalExpense">0</span></p>
+    <p>Saved Amount: <span id="savedAmount">0</span></p>
+  </div>
+  <canvas id="dashboardChart"></canvas>
+</div>
+
 <h3>Add Entry</h3>
 <form id="entryForm">
-  <input type="date" id="date" required>
-  <select id="person" required>
-    <option value="Miu">Miu</option>
-    <option value="Raya">Raya</option>
-  </select>
-  <select id="type" required>
-    <option value="Income">Income</option>
-    <option value="Expense">Expense</option>
-  </select>
-  <select id="category" required>
-    <option value="House">House</option>
-    <option value="Transport">Transport</option>
-    <option value="Personal">Personal</option>
-    <option value="General">General</option>
-  </select>
-  <input type="text" id="description" placeholder="Description">
-  <input type="number" id="amount" placeholder="Amount" required>
-  <button type="submit">Add Entry</button>
+  <div class="form-row">
+    <input type="date" id="date" required>
+    <select id="person" required>
+      <option value="Miu">Miu</option>
+      <option value="Raya">Raya</option>
+    </select>
+    <select id="type" required>
+      <option value="Income">Income</option>
+      <option value="Expense">Expense</option>
+    </select>
+    <select id="category" required>
+      <option value="House">House</option>
+      <option value="Transport">Transport</option>
+      <option value="Personal">Personal</option>
+      <option value="General">General</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <input type="text" id="description" placeholder="Description">
+    <input type="number" id="amount" placeholder="Amount" required>
+    <button type="submit">Add Entry</button>
+  </div>
 </form>
 
-<button class="toggleEntries" onclick="toggleEntries()">Show Entries</button>
-<label for="monthFilter">Filter by Month:</label>
-<input type="month" id="monthFilter">
-<button onclick="resetMonthData()">Reset Month Data</button>
-<button onclick="exportCSV()">Export CSV</button>
-<input type="file" id="importCSV" accept=".csv">
-
-<div id="entriesContainer">
-  <h3>Entries</h3>
-  <table id="entriesTable">
-    <thead>
-      <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<div class="form-row">
+  <label for="monthFilter">Filter by Month:</label>
+  <input type="month" id="monthFilter">
+  <button onclick="resetMonthData()">Reset Month Data</button>
 </div>
 
-<div class="dashboard" id="dashboard">
-<h3>Dashboard</h3>
-<div class="summary">
-  <p>Total Income: <span id="totalIncome">0</span></p>
-  <p>Total Expense: <span id="totalExpense">0</span></p>
-  <p>Net Balance: <span id="netBalance">0</span></p>
-</div>
-<canvas id="dashboardChart"></canvas>
-<canvas id="categoryChart"></canvas>
-</div>
+<h3>Entries</h3>
+<table id="entriesTable">
+  <thead>
+    <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
 <script>
 let entries = JSON.parse(localStorage.getItem('entries')) || [];
-let chart, categoryChart;
 const password = '12247';
+let chart;
 
 function saveEntries() {
   localStorage.setItem('entries', JSON.stringify(entries));
-}
-
-function toggleEntries() {
-  const table = document.getElementById('entriesTable');
-  table.style.display = table.style.display === 'none' ? 'table' : 'none';
 }
 
 function renderTable() {
@@ -93,65 +93,47 @@ function renderTable() {
   const tbody = document.querySelector('#entriesTable tbody');
   tbody.innerHTML = '';
 
-  let personTotals = {Miu:0, Raya:0};
-  let categoryTotals = {House:0, Transport:0, Personal:0, General:0};
-  let totalIncome = 0, totalExpense = 0;
+  let totalIncome = 0;
+  let totalExpense = 0;
 
   entries.forEach(e => {
     if(monthFilter && !e.date.startsWith(monthFilter)) return;
 
     const row = document.createElement('tr');
+    row.className = e.type === 'Income' ? 'income' : 'expense';
     row.innerHTML = `<td>${e.date}</td><td>${e.person}</td><td>${e.type}</td><td>${e.category}</td><td>${e.description}</td><td>${e.amount}</td>`;
     tbody.appendChild(row);
 
-    let amt = parseFloat(e.amount);
-    if(e.type === 'Income') {
-      personTotals[e.person] += amt;
-      totalIncome += amt;
-    } else {
-      personTotals[e.person] -= amt;
-      totalExpense += amt;
-      categoryTotals[e.category] += amt;
-    }
+    const amt = parseFloat(e.amount);
+    if(e.type === 'Income') totalIncome += amt;
+    else totalExpense += amt;
   });
 
   document.getElementById('totalIncome').textContent = totalIncome;
   document.getElementById('totalExpense').textContent = totalExpense;
-  document.getElementById('netBalance').textContent = totalIncome - totalExpense;
+  document.getElementById('savedAmount').textContent = totalIncome - totalExpense;
 
-  renderChart(personTotals);
-  renderCategoryChart(categoryTotals);
+  renderChart(totalIncome, totalExpense);
 }
 
-function renderChart(totals) {
+function renderChart(income, expense) {
   const ctx = document.getElementById('dashboardChart').getContext('2d');
   if(chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: Object.keys(totals),
+      labels: ['Income', 'Expense', 'Saved'],
       datasets: [{
-        label: 'Net Balance',
-        data: Object.values(totals),
-        backgroundColor: ['#4caf50','#f44336']
+        label: 'Monthly Totals',
+        data: [income, expense, income - expense],
+        backgroundColor: ['#4caf50', '#f44336', '#2196f3']
       }]
     },
     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
   });
 }
 
-function renderCategoryChart(totals) {
-  const ctx = document.getElementById('categoryChart').getContext('2d');
-  if(categoryChart) categoryChart.destroy();
-  categoryChart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: Object.keys(totals),
-      datasets: [{ data: Object.values(totals), backgroundColor: ['#2196f3','#ff9800','#9c27b0','#607d8b'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
+renderTable();
 
 document.getElementById('entryForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -174,47 +156,6 @@ document.getElementById('entryForm').addEventListener('submit', e => {
 });
 
 document.getElementById('monthFilter').addEventListener('change', renderTable);
-
-document.getElementById('importCSV').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const lines = e.target.result.split('\n');
-    lines.forEach(line => {
-      const [date, person, type, category, description, amount] = line.split(',');
-      if(date && person) entries.push({date, person, type, category, description, amount});
-    });
-    saveEntries();
-    renderTable();
-  };
-  reader.readAsText(file);
-});
-
-function exportCSV() {
-  let csv = 'Date,Person,Type,Category,Description,Amount\n';
-  entries.forEach(e => {
-    csv += [e.date,e.person,e.type,e.category,e.description,e.amount].join(',') + '\n';
-  });
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'budget.csv';
-  a.click();
-}
-
-function resetMonthData() {
-  const monthFilter = document.getElementById('monthFilter').value;
-  if(!monthFilter) { alert('Select a month to reset.'); return; }
-  const pass = prompt('Enter password to reset this month:');
-  if(pass !== password) { alert('Incorrect password'); return; }
-  entries = entries.filter(e => !e.date.startsWith(monthFilter));
-  saveEntries();
-  renderTable();
-}
-
-renderTable();
 </script>
 
 </body>
