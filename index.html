@@ -1,283 +1,237 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Couple Income & Expense Tracker — SPA</title>
+<title>Couple Income & Expense Tracker — SPA (Upgraded)</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root{
-    --bg:#f5f7fb; --card:#ffffff; --muted:#7b8a9a;
-    --green:#4caf50; --red:#f44336; --blue:#2196f3;
-    --shadow: 0 6px 18px rgba(20,30,50,0.08);
-    --radius: 12px;
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --muted: #617085;
+    --accent: #0ea5a4;
+    --green: #16a34a;
+    --red: #ef4444;
+    --blue: #2563eb;
+    --shadow: 0 10px 30px rgba(16,24,40,0.09);
+    --radius: 14px;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0;
-    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    background: linear-gradient(180deg,#f5f7fb 0%, #f1f4f9 100%);
-    color:#1f2937;
-    padding:36px;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
+    margin:0;padding:32px;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg, #f6f9fc 0%, var(--bg) 100%);
+    color:#0f1724;
+    display:flex; justify-content:center;
   }
-  .app {
-    width:1100px;
-    max-width:100%;
-    margin:0 auto;
-  }
-  header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:18px;
-  }
-  header h1{
-    margin:0;
-    font-size:20px;
-    letter-spacing:0.2px;
-  }
-  .screen {
-    display:none;
-    background:transparent;
-    transition:opacity .28s ease, transform .28s ease;
-  }
-  .screen.active{
-    display:block;
-  }
-  .card{
-    background:var(--card);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:18px;
-  }
+  .app { width:1100px; max-width:100%; }
+
+  header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  h1{ margin:0; font-size:20px; letter-spacing:0.2px; }
+  .controls { display:flex; gap:12px; align-items:center; }
+
+  /* screens */
+  .screen { display:none; opacity:0; transform: translateY(6px); transition:opacity .28s, transform .28s; }
+  .screen.active{ display:block; opacity:1; transform:translateY(0); }
+
+  .card{ background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
 
   /* HOME */
-  .home-hero{
-    height:520px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    gap:18px;
-  }
-  .home-center{
-    text-align:center;
-  }
-  .home-center p{color:var(--muted); margin-top:8px}
+  .home-hero{ height:580px; display:flex; align-items:center; justify-content:center; position:relative; gap:24px; }
+  .home-center{text-align:center;}
+  .home-center h2{ margin:0; font-size:28px; }
+  .home-center p{ color:var(--muted); margin-top:8px; }
 
-  /* split circular button */
+  /* big modern split button */
+  .add-btn-wrap { display:flex; align-items:center; justify-content:center; margin-top:18px; }
   .add-btn {
     position:relative;
-    width:160px;
-    height:160px;
-    border-radius:80px;
-    box-shadow:0 8px 26px rgba(16,24,40,0.12);
+    width:220px;
+    height:220px;
+    border-radius:110px;
     overflow:hidden;
-    cursor:pointer;
-    transition: transform .22s ease;
-    display:inline-block;
-    user-select:none;
-  }
-  .add-btn:hover { transform: scale(1.05); }
-  .add-btn .half {
-    position:absolute;
-    top:0;
-    width:50%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-weight:600;
-    font-size:18px;
-    padding:6px;
-  }
-  .add-btn .half.income { left:0; background: linear-gradient(180deg, rgba(76,175,80,0.95), rgba(56,142,60,0.95)); }
-  .add-btn .half.expense { right:0; background: linear-gradient(180deg, rgba(244,67,54,0.95), rgba(211,47,47,0.95)); }
-  .add-btn .half small { display:block; font-size:12px; opacity:0.9; margin-top:6px; font-weight:500; }
-
-  .gear {
-    position:absolute;
-    top:18px;
-    right:18px;
-    width:44px;
-    height:44px;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:var(--card);
-    box-shadow:var(--shadow);
+    display:inline-grid;
+    grid-template-columns:1fr 1fr;
+    box-shadow: 0 18px 46px rgba(16,24,40,0.18);
+    transform-origin:center;
+    transition: transform .22s ease, box-shadow .22s;
     cursor:pointer;
   }
-  .nav-back{
-    display:inline-flex;
-    gap:8px;
-    align-items:center;
-    padding:8px 12px;
-    border-radius:10px;
-    background:var(--card);
-    box-shadow:var(--shadow);
-    cursor:pointer;
+  .add-btn:hover{ transform:scale(1.05) rotate(-1deg); box-shadow: 0 28px 60px rgba(16,24,40,0.22); }
+  .add-half{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:white; font-weight:700; font-size:20px; padding:14px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    min-height:100%;
   }
+  .add-half.income{ background: linear-gradient(180deg, rgba(34,197,94,0.96), rgba(16,185,129,0.95)); }
+  .add-half.expense{ background: linear-gradient(180deg, rgba(239,68,68,0.96), rgba(239,68,68,0.9)); }
+  .add-half small{ display:block; font-weight:600; font-size:12px; opacity:0.95; margin-top:8px; }
+  /* subtle inner separator line */
+  .add-btn::after{ content:''; position:absolute; left:50%; top:10%; bottom:10%; width:2px; background:rgba(255,255,255,0.12); transform:translateX(-1px); border-radius:2px; }
 
-  /* ENTRY PAGE LAYOUT */
-  .entry-layout{
-    display:grid;
-    grid-template-columns:360px 1fr;
-    gap:18px;
-    align-items:start;
+  .home-actions { margin-top:18px; display:flex; gap:12px; justify-content:center; }
+
+  /* back/home/gear */
+  .nav-btn{ display:inline-flex; gap:8px; align-items:center; padding:10px 12px; border-radius:10px; background:var(--card); box-shadow:var(--shadow); cursor:pointer; border:none; }
+  .gear{ width:48px; height:48px; display:grid; place-items:center; border-radius:10px; cursor:pointer; box-shadow:var(--shadow); background:var(--card); }
+
+  /* ENTRY layout */
+  .entry-layout{ display:grid; grid-template-columns:380px 1fr; gap:18px; align-items:start; }
+  @media (max-width:980px){ .entry-layout{ grid-template-columns:1fr } .add-btn { width:160px;height:160px;border-radius:80px } }
+
+  .summary { padding:16px; border-radius:12px; background:linear-gradient(180deg,#ffffff,#fbfdff); }
+  .summary p{ margin:10px 0; font-weight:700; font-size:15px; display:flex; justify-content:space-between; }
+
+  form .field { margin-bottom:10px; }
+  label.fieldlabel { font-size:13px; color:var(--muted); display:block; margin-bottom:6px; font-weight:600; }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid #e6eef6; background:white;
   }
-  .left-col{display:flex;flex-direction:column;gap:14px}
-  .summary{
-    padding:14px;
-    border-radius:10px;
-    background:linear-gradient(180deg,#fff,#fbfdff);
-  }
-  .summary p{margin:8px 0; font-weight:700; font-size:16px}
-  .summary span{display:inline-block; min-width:120px; font-weight:800; text-align:right}
+  button.primary { background:var(--blue); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; box-shadow: 0 10px 24px rgba(37,99,235,0.12); }
+  button.secondary { background:#f8fafc; border:1px solid #e8eef8; padding:10px 12px; border-radius:10px; cursor:pointer; }
 
-  form .form-row{
-    display:flex; gap:8px; align-items:center; margin-bottom:10px;
-  }
-  form input, form select, form button {
-    width:100%;
-    padding:10px 12px;
-    border-radius:8px;
-    border:1px solid #e2e8f0;
-    background:white;
-    font-size:14px;
-  }
-  form label{font-weight:600; font-size:13px; color:var(--muted)}
+  /* Table */
+  table { width:100%; border-collapse:collapse; border-radius:10px; overflow:hidden; }
+  thead th{ background:#fbfdff; text-align:left; padding:12px; font-size:13px; color:#334155; }
+  td, th{ padding:10px 12px; border-bottom:1px solid #f1f5f9; font-size:14px; }
+  tr.income td { background: linear-gradient(90deg, rgba(237,252,245,0.9), transparent); }
+  tr.expense td { background: linear-gradient(90deg, rgba(255,240,240,0.95), transparent); }
+  .actions button { margin-right:6px; padding:6px 8px; border-radius:8px; cursor:pointer; border:none; }
 
-  /* table */
-  table { width:100%; border-collapse:collapse; font-size:14px; background:var(--card); border-radius:8px; overflow:hidden;}
-  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #f1f5f9; }
-  thead th { background:#fafbff; font-weight:700; color:#334155; }
-  tr.income td { background: linear-gradient(90deg, rgba(237,252,245,0.8), transparent); }
-  tr.expense td { background: linear-gradient(90deg, rgba(255,240,240,0.9), transparent); }
-  td.actions { display:flex; gap:8px; }
+  .muted { color:var(--muted); font-size:13px; }
 
-  .small-muted{ color:var(--muted); font-size:13px }
+  /* settings layout */
+  .settings-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .list{ display:flex; flex-direction:column; gap:8px; }
+  .list .item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:10px; background:#fff; border:1px solid #eef6fb; }
 
-  /* SETTINGS */
-  .list { display:flex; flex-direction:column; gap:8px; }
-  .list .item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:8px; background:#fff; border:1px solid #eef2f7; }
-  .danger { background:linear-gradient(90deg,#fff3f3,#fff); border-color:#ffdddd }
+  /* small controls row */
+  .controls-row{ display:flex; gap:8px; align-items:center; margin-top:8px; }
 
-  /* responsive */
-  @media (max-width:980px){
-    .entry-layout{ grid-template-columns:1fr; }
-    .add-btn { width:140px; height:140px; border-radius:70px; }
+  /* modal */
+  .modal-backdrop{ position:fixed; left:0; top:0; right:0; bottom:0; background:rgba(6,8,12,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
+  .modal { width:520px; max-width:94%; background:white; border-radius:12px; padding:18px; box-shadow:0 30px 80px rgba(2,6,23,0.4); }
+  .modal h3 { margin:0 0 8px 0; font-size:18px; }
+  .modal .row { margin-top:10px; display:flex; gap:8px; }
+  .modal.show { display:flex; }
+
+  /* small helpers */
+  .right { margin-left:auto; }
+  .danger { background:linear-gradient(90deg,#fff3f3,#fff); border-color:#ffdede; }
+  .pill { padding:6px 10px; border-radius:999px; background:#f1f5f9; font-size:13px; }
+
+  /* print styles */
+  @media print {
+    body * { visibility: hidden; }
+    #printableReport, #printableReport * { visibility: visible; }
+    #printableReport { position: absolute; left:0; top:0; width:100% }
   }
 </style>
 </head>
 <body>
   <div class="app">
-
     <header>
-      <div style="display:flex;gap:12px;align-items:center">
-        <button id="goHome" class="nav-back" title="Home" style="display:none">🏠 Home</button>
-        <h1>Couple Income & Expense Tracker</h1>
-      </div>
-      <div style="display:flex;gap:12px;align-items:center">
-        <div id="topSummary" class="small-muted" style="display:none"></div>
+      <h1>Couple Income & Expense Tracker</h1>
+      <div class="controls">
+        <div id="topSummary" class="muted" style="display:none"></div>
+        <button id="goHome" class="nav-btn" style="display:none">🏠 Home</button>
         <div id="gear" class="gear" title="Settings">⚙️</div>
       </div>
     </header>
 
-    <!-- HOME SCREEN -->
+    <!-- HOME -->
     <main id="homeScreen" class="screen active">
       <div class="card home-hero">
         <div class="home-center">
-          <h2 style="margin:0">Welcome back 👋</h2>
-          <p>Quick add — choose Income or Expense</p>
-          <div style="margin-top:18px">
-            <div class="add-btn" aria-label="Add income or expense">
-              <div class="half income" id="homeIncomeBtn">
-                Income
-                <small>+ Add money</small>
-              </div>
-              <div class="half expense" id="homeExpenseBtn">
-                Expense
-                <small>- Add spend</small>
-              </div>
+          <h2>Welcome back 👋</h2>
+          <p class="muted">Quick add: tap the big button — left = Income, right = Expense</p>
+          <div class="add-btn-wrap">
+            <div class="add-btn" id="homeAddBtn" role="button" aria-label="Add entry">
+              <div class="add-half income" id="homeIncome">Income <small>+ Add money</small></div>
+              <div class="add-half expense" id="homeExpense">Expense <small>− Add spend</small></div>
             </div>
           </div>
+
+          <div class="home-actions">
+            <button id="openEntryBtn" class="nav-btn">Open Entries & Dashboard</button>
+            <button id="openSettingsBtn" class="nav-btn">Settings</button>
+          </div>
+
+          <div style="margin-top:20px" class="muted">Tip: You can export/import CSV and print monthly reports from the Entry screen.</div>
         </div>
       </div>
     </main>
 
-    <!-- ENTRY SCREEN -->
+    <!-- ENTRY -->
     <section id="entryScreen" class="screen">
-      <div class="card entry-layout">
-        <div class="left-col">
+      <div class="entry-layout">
+        <div style="display:flex;flex-direction:column;gap:14px">
           <div class="summary card">
-            <p>Monthly Summary (filtered)</p>
-            <p>Total Income: <span id="totalIncomeLeft">0.00</span></p>
-            <p>Total Expense: <span id="totalExpenseLeft">0.00</span></p>
-            <p>Saved: <span id="savedLeft" style="color:green">0.00</span></p>
+            <p style="font-size:14px;margin-bottom:8px">Monthly Summary <span class="muted" id="dashboardDate" style="font-weight:600"></span></p>
+            <p>Total Income <span id="totalIncomeLeft">0.00</span></p>
+            <p>Total Expense <span id="totalExpenseLeft">0.00</span></p>
+            <p>Saved <span id="savedLeft" style="color:var(--green)">0.00</span></p>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button id="printReportBtn" class="primary">Print Monthly Report</button>
+              <button id="exportBtn" class="secondary">Export CSV</button>
+              <label class="secondary" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+                Import CSV <input id="importFile" type="file" accept=".csv" style="display:none"/>
+              </label>
+            </div>
           </div>
 
           <div class="card">
             <h3 style="margin:0 0 12px 0">Add / Edit Entry</h3>
             <form id="entryForm">
-              <div class="form-row">
-                <label style="width:100%">Date
-                  <input type="date" id="date" required>
-                </label>
+              <div class="field">
+                <label class="fieldlabel">Date</label>
+                <input type="date" id="date" required>
               </div>
-
-              <div class="form-row">
-                <label style="flex:1">Person
+              <div class="field" style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label class="fieldlabel">Person</label>
                   <select id="person"></select>
-                </label>
-                <label style="flex:1">Type
-                  <select id="type">
-                    <option>Income</option>
-                    <option>Expense</option>
-                  </select>
-                </label>
+                </div>
+                <div style="flex:1">
+                  <label class="fieldlabel">Type</label>
+                  <select id="type"><option>Income</option><option>Expense</option></select>
+                </div>
               </div>
-
-              <div class="form-row">
-                <label style="flex:1">Category
+              <div class="field" style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label class="fieldlabel">Category</label>
                   <select id="category"></select>
-                </label>
-                <label style="flex:1">Amount
+                </div>
+                <div style="flex:1">
+                  <label class="fieldlabel">Amount</label>
                   <input type="number" id="amount" step="0.01" required>
-                </label>
+                </div>
               </div>
-
-              <div class="form-row">
-                <label style="width:100%">Description
-                  <input type="text" id="description" placeholder="Optional note">
-                </label>
+              <div class="field">
+                <label class="fieldlabel">Description</label>
+                <input type="text" id="description" placeholder="Optional note">
               </div>
 
               <div style="display:flex;gap:8px;margin-top:8px">
-                <button type="submit" id="saveEntryBtn" style="background:var(--blue);color:white">Save Entry</button>
-                <button type="button" id="cancelEditBtn">Clear</button>
+                <button type="submit" class="primary" id="saveEntryBtn">Save Entry</button>
+                <button type="button" class="secondary" id="clearFormBtn">Clear</button>
               </div>
-
             </form>
           </div>
 
           <div class="card">
-            <h3 style="margin:0 0 12px 0">Filter & Reset</h3>
-            <div class="form-row">
+            <h3 style="margin:0 0 8px 0">Filter & Reset</h3>
+            <div style="display:flex;gap:8px;align-items:center">
               <label style="flex:1">Filter by month
-                <input type="month" id="monthFilter">
+                <input type="month" id="monthFilter" style="width:100%; margin-top:6px"/>
               </label>
-              <button id="resetMonthBtn" style="background:#ef4444;color:white">Reset Month</button>
+              <button id="resetMonthBtn" class="secondary" style="background:#fff0f0;border:1px solid #ffeaea;color:var(--red)">Reset Month</button>
             </div>
-            <p class="small-muted" style="margin-top:8px">Reset removes all entries for the selected month (password required).</p>
+            <div class="muted" style="margin-top:8px">Reset removes all entries for the selected month (password required).</div>
           </div>
-
         </div>
 
         <div>
@@ -285,218 +239,232 @@
             <div style="display:flex;justify-content:space-between;align-items:center">
               <h3 style="margin:0">Dashboard</h3>
               <div style="display:flex;gap:8px;align-items:center">
-                <div class="small-muted" id="dashboardDate"></div>
-                <button id="backToHome" class="nav-back" style="display:inline-flex">← Home</button>
+                <div class="muted" id="dashSmallDate"></div>
+                <button id="backToHome" class="nav-btn">← Home</button>
               </div>
             </div>
-            <div style="margin-top:12px">
-              <canvas id="dashboardChart" style="height:240px"></canvas>
+            <div style="margin-top:12px; height:260px">
+              <canvas id="dashboardChart" style="height:100%"></canvas>
             </div>
           </div>
 
           <div class="card">
-            <h3 style="margin:0 0 12px 0">Entries</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <h3 style="margin:0">Entries</h3>
+              <div class="muted">Click Edit to modify entries</div>
+            </div>
             <table id="entriesTable">
               <thead>
-                <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th style="width:110px">Amount</th><th>Actions</th></tr>
+                <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th>Actions</th></tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
-
         </div>
       </div>
     </section>
 
-    <!-- SETTINGS SCREEN -->
+    <!-- SETTINGS -->
     <section id="settingsScreen" class="screen">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
           <h2 style="margin:0">Settings</h2>
           <div style="display:flex;gap:8px">
-            <button id="settingsBack" class="nav-back">← Back</button>
+            <button id="settingsBack" class="nav-btn">← Back</button>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="margin-top:12px" class="settings-grid">
           <div class="card">
-            <h3 style="margin:0 0 10px 0">People</h3>
+            <h3>People</h3>
             <div class="list" id="peopleList"></div>
-
             <div style="display:flex;gap:8px;margin-top:10px">
               <input id="newPersonInput" placeholder="New person name">
-              <button id="addPersonBtn" style="background:var(--blue);color:white">Add</button>
+              <button id="addPersonBtn" class="primary">Add</button>
             </div>
           </div>
 
           <div class="card">
-            <h3 style="margin:0 0 10px 0">Categories</h3>
+            <h3>Categories</h3>
             <div class="list" id="categoryList"></div>
-
             <div style="display:flex;gap:8px;margin-top:10px">
               <input id="newCategoryInput" placeholder="New category name">
-              <button id="addCategoryBtn" style="background:var(--blue);color:white">Add</button>
+              <button id="addCategoryBtn" class="primary">Add</button>
             </div>
           </div>
-
         </div>
 
-        <p class="small-muted" style="margin-top:12px">Any changes in settings require the password.</p>
+        <div class="muted" style="margin-top:12px">All changes in Settings require a password.</div>
       </div>
     </section>
 
+    <!-- modal backdrop -->
+    <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
+      <div class="modal" id="modalBox" role="dialog" aria-modal="true">
+        <h3 id="modalTitle">Modal</h3>
+        <div id="modalBody" style="margin-top:8px"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button id="modalCancel" class="secondary">Cancel</button>
+          <button id="modalConfirm" class="primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- hidden printable container -->
+    <div id="printableReport" style="display:none"></div>
   </div>
 
 <script>
-/* =========================
-   App state & storage keys
-   ========================= */
-const STORAGE_KEYS = {
-  entries: 'ce_entries_v1',
-  settings: 'ce_settings_v1'
+/* ========== Storage & initial state ========== */
+const STORAGE = {
+  entries: 'ce_entries_v2',
+  settings: 'ce_settings_v2'
 };
 const PASSWORD = '12247';
 
 let state = {
-  entries: JSON.parse(localStorage.getItem(STORAGE_KEYS.entries) || '[]'),
-  settings: JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || 'null'),
+  entries: JSON.parse(localStorage.getItem(STORAGE.entries) || '[]'),
+  settings: JSON.parse(localStorage.getItem(STORAGE.settings) || 'null'),
   editingId: null
 };
 
-// default settings if none
 if(!state.settings){
   state.settings = {
     people: ['Miu','Raya'],
     categories: ['House','Transport','Personal','General']
   };
-  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+  localStorage.setItem(STORAGE.settings, JSON.stringify(state.settings));
 }
 
-/* ==== UI refs ==== */
-const homeScreen = document.getElementById('homeScreen');
-const entryScreen = document.getElementById('entryScreen');
-const settingsScreen = document.getElementById('settingsScreen');
-const goHomeBtn = document.getElementById('goHome');
-const gearBtn = document.getElementById('gear');
-const backToHomeBtn = document.getElementById('backToHome');
-const settingsBackBtn = document.getElementById('settingsBack');
+/* ========== DOM refs ========== */
+const screens = { home: document.getElementById('homeScreen'), entry: document.getElementById('entryScreen'), settings: document.getElementById('settingsScreen') };
+const goHome = document.getElementById('goHome'), gear = document.getElementById('gear'), backToHome = document.getElementById('backToHome');
+const homeIncome = document.getElementById('homeIncome'), homeExpense = document.getElementById('homeExpense');
+const openEntryBtn = document.getElementById('openEntryBtn'), openSettingsBtn = document.getElementById('openSettingsBtn');
 
-const homeIncomeBtn = document.getElementById('homeIncomeBtn');
-const homeExpenseBtn = document.getElementById('homeExpenseBtn');
+const personSelect = document.getElementById('person'), categorySelect = document.getElementById('category');
+const dateInput = document.getElementById('date'), typeSelect = document.getElementById('type');
+const amountInput = document.getElementById('amount'), descInput = document.getElementById('description');
+const entryForm = document.getElementById('entryForm'), clearFormBtn = document.getElementById('clearFormBtn');
 
-const personSelect = document.getElementById('person');
-const categorySelect = document.getElementById('category');
-const dateInput = document.getElementById('date');
-const typeSelect = document.getElementById('type');
-const amountInput = document.getElementById('amount');
-const descInput = document.getElementById('description');
-const entryForm = document.getElementById('entryForm');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
+const monthFilter = document.getElementById('monthFilter'), resetMonthBtn = document.getElementById('resetMonthBtn');
 
-const monthFilter = document.getElementById('monthFilter');
-const resetMonthBtn = document.getElementById('resetMonthBtn');
+const entriesTbody = document.querySelector('#entriesTable tbody');
+const totalIncomeLeft = document.getElementById('totalIncomeLeft'), totalExpenseLeft = document.getElementById('totalExpenseLeft'), savedLeft = document.getElementById('savedLeft');
+const dashboardDate = document.getElementById('dashboardDate'), dashSmallDate = document.getElementById('dashSmallDate'), topSummary = document.getElementById('topSummary');
 
-const entriesTableBody = document.querySelector('#entriesTable tbody');
-const totalIncomeLeft = document.getElementById('totalIncomeLeft');
-const totalExpenseLeft = document.getElementById('totalExpenseLeft');
-const savedLeft = document.getElementById('savedLeft');
-const dashboardDate = document.getElementById('dashboardDate');
-const topSummary = document.getElementById('topSummary');
+const peopleList = document.getElementById('peopleList'), categoryList = document.getElementById('categoryList');
+const newPersonInput = document.getElementById('newPersonInput'), addPersonBtn = document.getElementById('addPersonBtn');
+const newCategoryInput = document.getElementById('newCategoryInput'), addCategoryBtn = document.getElementById('addCategoryBtn');
 
-const peopleList = document.getElementById('peopleList');
-const categoryList = document.getElementById('categoryList');
-const newPersonInput = document.getElementById('newPersonInput');
-const newCategoryInput = document.getElementById('newCategoryInput');
-const addPersonBtn = document.getElementById('addPersonBtn');
-const addCategoryBtn = document.getElementById('addCategoryBtn');
+const exportBtn = document.getElementById('exportBtn'), importFile = document.getElementById('importFile'), printReportBtn = document.getElementById('printReportBtn');
 
-const saveEntryBtn = document.getElementById('saveEntryBtn');
+const modalBackdrop = document.getElementById('modalBackdrop'), modalBox = document.getElementById('modalBox'), modalTitle = document.getElementById('modalTitle'), modalBody = document.getElementById('modalBody');
+const modalCancel = document.getElementById('modalCancel'), modalConfirm = document.getElementById('modalConfirm');
 
-/* Chart */
-let chart;
+let chart = null;
 
-/* ========== Helpers ============ */
-function saveState() {
-  localStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(state.entries));
-  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+/* ========== utility ========== */
+function saveAll(){
+  localStorage.setItem(STORAGE.entries, JSON.stringify(state.entries));
+  localStorage.setItem(STORAGE.settings, JSON.stringify(state.settings));
 }
-
-function uid() { return 'id_' + Math.random().toString(36).slice(2,9); }
-
+function uid(){ return 'id_' + Math.random().toString(36).slice(2,9); }
 function showScreen(name){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  if(name === 'home') homeScreen.classList.add('active');
-  if(name === 'entry') entryScreen.classList.add('active');
-  if(name === 'settings') settingsScreen.classList.add('active');
+  Object.keys(screens).forEach(k => screens[k].classList.remove('active'));
+  screens[name].classList.add('active');
+  goHome.style.display = (name==='home') ? 'none' : 'inline-flex';
+  dashSmallDate.textContent = (name==='entry') ? dashboardDate.textContent : '';
+  topSummary.style.display = (name!=='home') ? 'inline-block' : 'none';
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function monthISO(){ return new Date().toISOString().slice(0,7); }
 
-  // header buttons visibility
-  goHomeBtn.style.display = (name === 'home') ? 'none' : 'inline-flex';
-  backToHomeBtn.style.display = (name === 'entry') ? 'inline-flex' : 'none';
-  topSummary.style.display = (name !== 'home') ? 'inline-block' : 'none';
-  gearBtn.style.display = (name === 'home') ? 'inline-block' : 'none';
+/* ========== modals (password & confirm) ========== */
+let modalResolve = null;
+function openModal({ title='Confirm', body='', confirmText='Confirm', showCancel=true, requirePassword=false } = {}){
+  modalTitle.textContent = title;
+  modalBody.innerHTML = '';
+  if(requirePassword){
+    modalBody.innerHTML = `<div style="margin-bottom:8px">${body || ''}</div>
+      <div style="display:flex;gap:8px;align-items:center">Password: <input id="modalPwd" type="password" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef6"/></div>`;
+  } else {
+    modalBody.innerHTML = body;
+  }
+  modalConfirm.textContent = confirmText;
+  modalCancel.style.display = showCancel ? 'inline-block' : 'none';
+  modalBackdrop.classList.add('show');
+  modalBackdrop.style.display = 'flex';
+  return new Promise(resolve => { modalResolve = resolve; });
+}
+modalCancel.addEventListener('click', () => { closeModal(false); });
+modalConfirm.addEventListener('click', () => {
+  // if require password present, check
+  const pwdInput = document.getElementById('modalPwd');
+  if(pwdInput){
+    if(pwdInput.value === PASSWORD){ closeModal(true, pwdInput.value); }
+    else { alert('Incorrect password'); }
+  } else closeModal(true);
+});
+function closeModal(result=false, value=null){
+  modalBackdrop.classList.remove('show');
+  modalBackdrop.style.display = 'none';
+  if(modalResolve) modalResolve({ok:result, value});
+  modalResolve = null;
 }
 
-/* date helpers */
-function monthOf(dateStr){
-  if(!dateStr) return '';
-  return dateStr.slice(0,7);
-}
-
-/* ========== INITIALIZE UI ========== */
+/* ========== populate selects & lists ========== */
 function populateSettingsUI(){
-  // person select & list
+  // people select & list
   personSelect.innerHTML = '';
   peopleList.innerHTML = '';
   state.settings.people.forEach((p, idx) => {
-    const opt = document.createElement('option'); opt.value = p; opt.textContent = p;
-    personSelect.appendChild(opt);
-
+    const opt = document.createElement('option'); opt.value = p; opt.textContent = p; personSelect.appendChild(opt);
     const item = document.createElement('div'); item.className='item';
-    item.innerHTML = `<div>${p}</div><div><button data-index="${idx}" class="del-person" style="background:#ffdddd;border-radius:6px;padding:6px 8px">Delete</button></div>`;
+    item.innerHTML = `<div>${p}</div><div><button data-idx="${idx}" class="del-person" style="background:#ffeef0;padding:6px 8px;border-radius:8px">Delete</button></div>`;
     peopleList.appendChild(item);
   });
 
-  // category select & list
+  // categories select & list
   categorySelect.innerHTML = '';
   categoryList.innerHTML = '';
   state.settings.categories.forEach((c, idx) => {
-    const opt = document.createElement('option'); opt.value = c; opt.textContent = c;
-    categorySelect.appendChild(opt);
-
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; categorySelect.appendChild(opt);
     const item = document.createElement('div'); item.className='item';
-    item.innerHTML = `<div>${c}</div><div><button data-index="${idx}" class="del-cat" style="background:#ffdddd;border-radius:6px;padding:6px 8px">Delete</button></div>`;
+    item.innerHTML = `<div>${c}</div><div><button data-idx="${idx}" class="del-cat" style="background:#fff1f0;padding:6px 8px;border-radius:8px">Delete</button></div>`;
     categoryList.appendChild(item);
   });
 }
 
-/* ========== Entries rendering & chart ========== */
+/* ========== entries rendering & chart ========== */
 function getFilteredEntries(){
   const mon = monthFilter.value;
-  if(!mon) return state.entries.slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
-  return state.entries.filter(e => e.date && e.date.startsWith(mon)).sort((a,b)=> new Date(a.date)-new Date(b.date));
+  let list = state.entries.slice().sort((a,b)=> new Date(a.date) - new Date(b.date));
+  if(mon) list = list.filter(e => e.date && e.date.startsWith(mon));
+  return list;
 }
 
 function renderEntries(){
   const list = getFilteredEntries();
-  entriesTableBody.innerHTML = '';
-
+  entriesTbody.innerHTML = '';
   let inc = 0, exp = 0;
+
   list.forEach(e => {
     const tr = document.createElement('tr');
     tr.className = e.type === 'Income' ? 'income' : 'expense';
-    tr.innerHTML = `
+    const row = `
       <td>${e.date}</td>
       <td>${e.person}</td>
       <td>${e.type}</td>
       <td>${e.category}</td>
       <td>${e.description || ''}</td>
-      <td style="text-align:right">${parseFloat(e.amount).toFixed(2)}</td>
+      <td style="text-align:right">${Number(e.amount).toFixed(2)}</td>
       <td class="actions">
-        <button data-id="${e.id}" class="editBtn">Edit</button>
-        <button data-id="${e.id}" class="delBtn" style="background:#fee2e2">Delete</button>
-      </td>
-    `;
-    entriesTableBody.appendChild(tr);
+        <button class="editBtn" data-id="${e.id}">Edit</button>
+        <button class="delBtn" data-id="${e.id}" style="background:#fff5f5">Delete</button>
+      </td>`;
+    tr.innerHTML = row;
+    entriesTbody.appendChild(tr);
     if(e.type === 'Income') inc += Number(e.amount || 0);
     else exp += Number(e.amount || 0);
   });
@@ -505,39 +473,35 @@ function renderEntries(){
   totalExpenseLeft.textContent = exp.toFixed(2);
   const saved = inc - exp;
   savedLeft.textContent = saved.toFixed(2);
-  savedLeft.style.color = saved >= 0 ? 'green' : 'red';
+  savedLeft.style.color = saved >= 0 ? 'var(--green)' : 'var(--red)';
 
-  // top summary small
   topSummary.textContent = `Income: ${inc.toFixed(2)} · Expense: ${exp.toFixed(2)} · Saved: ${saved.toFixed(2)}`;
+  dashboardDate.textContent = monthFilter.value ? new Date(monthFilter.value + '-01').toLocaleString(undefined, { month:'long', year:'numeric' }) : new Date().toLocaleString(undefined,{ month:'long', year:'numeric'});
 
   renderChart(inc, exp);
-
-  // attach edit/delete handlers
-  document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', onEditEntry));
-  document.querySelectorAll('.delBtn').forEach(btn => btn.addEventListener('click', onDeleteEntry));
+  // wire action buttons
+  document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', onEdit));
+  document.querySelectorAll('.delBtn').forEach(btn => btn.addEventListener('click', onDeleteAsk));
 }
 
 function renderChart(income, expense){
   const ctx = document.getElementById('dashboardChart').getContext('2d');
   if(chart) chart.destroy();
   chart = new Chart(ctx, {
-    type: 'bar',
+    type:'bar',
     data:{
-      labels: ['Income','Expense','Saved'],
+      labels:['Income','Expense','Saved'],
       datasets:[{
-        label:'Monthly Totals',
         data:[income, expense, income - expense],
-        backgroundColor:[getComputedStyle(document.documentElement).getPropertyValue('--green') || '#4caf50',
-                         getComputedStyle(document.documentElement).getPropertyValue('--red') || '#f44336',
-                         getComputedStyle(document.documentElement).getPropertyValue('--blue') || '#2196f3']
+        backgroundColor:['#16a34a','#ef4444','#2563eb']
       }]
     },
-    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
   });
 }
 
-/* ========== Entry CRUD ========== */
-function onEditEntry(e){
+/* ========== CRUD ========== */
+function onEdit(e){
   const id = e.currentTarget.dataset.id;
   const item = state.entries.find(x=>x.id===id);
   if(!item) return;
@@ -546,191 +510,350 @@ function onEditEntry(e){
   personSelect.value = item.person;
   typeSelect.value = item.type;
   categorySelect.value = item.category;
-  amountInput.value = parseFloat(item.amount).toFixed(2);
+  amountInput.value = Number(item.amount).toFixed(2);
   descInput.value = item.description || '';
   saveEntryBtn.textContent = 'Update Entry';
-  // navigate to top of entry area
   showScreen('entry');
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior:'smooth' });
 }
 
-function onDeleteEntry(e){
+function onDeleteAsk(e){
   const id = e.currentTarget.dataset.id;
-  if(!confirm('Delete this entry?')) return;
-  state.entries = state.entries.filter(x=>x.id !== id);
-  saveState();
-  renderEntries();
+  openModal({ title: 'Delete entry', body: 'Are you sure you want to delete this entry?', confirmText: 'Delete', requirePassword:true }).then(res => {
+    if(res.ok){
+      state.entries = state.entries.filter(x=>x.id !== id);
+      saveAll(); renderEntries();
+    }
+  });
 }
 
-/* submit */
-entryForm.addEventListener('submit', function(ev){
+/* form submit */
+entryForm.addEventListener('submit', (ev) => {
   ev.preventDefault();
   const date = dateInput.value;
   const person = personSelect.value;
   const type = typeSelect.value;
   const category = categorySelect.value;
-  const amount = parseFloat(amountInput.value || 0).toFixed(2);
+  const amount = Number(amountInput.value || 0).toFixed(2);
   const description = descInput.value;
 
-  if(!date || !amount){ alert('Date and amount required'); return; }
+  if(!date || !amount){ alert('Date and amount are required'); return; }
 
   if(state.editingId){
-    const idx = state.entries.findIndex(x=>x.id===state.editingId);
+    const idx = state.entries.findIndex(x=>x.id === state.editingId);
     if(idx >= 0){
       state.entries[idx] = { id: state.editingId, date, person, type, category, amount, description };
       state.editingId = null;
     }
+    saveEntryBtn.textContent = 'Save Entry';
   } else {
     state.entries.push({ id: uid(), date, person, type, category, amount, description });
   }
 
-  saveState();
-  entryForm.reset();
-  saveEntryBtn.textContent = 'Save Entry';
-  renderEntries();
+  saveAll(); entryForm.reset(); renderEntries();
 });
 
-/* cancel / clear */
-cancelEditBtn.addEventListener('click', () => {
-  state.editingId = null;
-  entryForm.reset();
-  saveEntryBtn.textContent = 'Save Entry';
-});
+/* clear form */
+clearFormBtn.addEventListener('click', () => { entryForm.reset(); state.editingId = null; saveEntryBtn.textContent = 'Save Entry'; });
 
-/* ========== Home / Navigation actions ========== */
-homeIncomeBtn.addEventListener('click', () => {
-  openEntryWithType('Income');
-});
-homeExpenseBtn.addEventListener('click', () => {
-  openEntryWithType('Expense');
-});
-function openEntryWithType(t){
+/* home quick-add */
+homeIncome.addEventListener('click', ()=> openEntryWithType('Income'));
+homeExpense.addEventListener('click', ()=> openEntryWithType('Expense'));
+function openEntryWithType(type){
   showScreen('entry');
-  // set default date to today
-  const now = new Date();
-  dateInput.value = now.toISOString().slice(0,10);
-  typeSelect.value = t;
-  // preselect current month in filter
-  monthFilter.value = now.toISOString().slice(0,7);
+  dateInput.value = todayISO();
+  typeSelect.value = type;
+  monthFilter.value = monthISO();
+  populateSettingsUI();
   renderEntries();
-  // scroll to form
-  setTimeout(()=> {
-    window.scrollTo({ top: 100, behavior:'smooth' });
-  }, 150);
+  setTimeout(()=>{ window.scrollTo({ top: 60, behavior:'smooth' }); }, 160);
 }
 
 /* navigation */
-goHomeBtn.addEventListener('click', ()=> showScreen('home'));
-backToHomeBtn.addEventListener('click', ()=> showScreen('home'));
-gearBtn.addEventListener('click', ()=> {
-  showScreen('settings');
-  populateSettingsUI();
-});
-settingsBackBtn.addEventListener('click', ()=> showScreen('entry'));
+goHome.addEventListener('click', ()=> showScreen('home'));
+openEntryBtn.addEventListener('click', ()=> { showScreen('entry'); populateSettingsUI(); renderEntries(); });
+openSettingsBtn.addEventListener('click', ()=> { showScreen('settings'); populateSettingsUI(); });
 
-/* top nav Home button behavior */
-document.getElementById('goHome').addEventListener('click', ()=> showScreen('home'));
-document.getElementById('backToHome').addEventListener('click', ()=> showScreen('home'));
+gear.addEventListener('click', ()=> { showScreen('settings'); populateSettingsUI(); });
+document.getElementById('settingsBack').addEventListener('click', ()=> { showScreen('entry'); populateSettingsUI(); });
 
-/* set default current month on load */
-(function setDefaultMonth(){
-  const now = new Date();
-  monthFilter.value = now.toISOString().slice(0,7);
-  dashboardDate.textContent = now.toLocaleString(undefined,{month:'long', year:'numeric'});
+backToHome.addEventListener('click', ()=> showScreen('home'));
+
+/* init month filter */
+(function initMonth(){
+  monthFilter.value = monthISO();
+  dashboardDate.textContent = new Date().toLocaleString(undefined,{ month:'long', year:'numeric' });
 })();
 
-/* month filter & reset */
 monthFilter.addEventListener('change', renderEntries);
+
+/* reset month (password modal) */
 resetMonthBtn.addEventListener('click', ()=> {
-  const mon = monthFilter.value;
-  if(!mon){ alert('Select month to reset'); return; }
-  const pwd = prompt('Enter password to reset month data:');
-  if(pwd !== PASSWORD){ alert('Incorrect password'); return; }
-  state.entries = state.entries.filter(e => !e.date.startsWith(mon));
-  saveState();
-  renderEntries();
-  alert('Month data reset successfully');
+  if(!monthFilter.value){ alert('Select a month'); return; }
+  openModal({ title:'Reset month data', body:`This will delete all entries for ${monthFilter.value}. Are you sure?`, confirmText:'Reset', requirePassword:true }).then(res => {
+    if(res.ok){
+      state.entries = state.entries.filter(e => !e.date.startsWith(monthFilter.value));
+      saveAll(); renderEntries(); alert('Month reset successful');
+    }
+  });
 });
 
-/* ========== Settings management (password-protected) ========== */
-function requirePassword(promptText){
-  const pwd = prompt(promptText || 'Enter password:');
-  if(pwd === PASSWORD) return true;
-  alert('Incorrect password');
-  return false;
-}
-
-/* add person */
+/* ========== settings actions (password protected) ========== */
 addPersonBtn.addEventListener('click', ()=> {
   const name = newPersonInput.value.trim();
   if(!name){ alert('Enter a name'); return; }
-  if(!requirePassword('Enter password to add person:')) return;
-  if(state.settings.people.includes(name)){ alert('Person already exists'); return; }
-  state.settings.people.push(name);
-  saveState();
-  newPersonInput.value = '';
-  populateSettingsUI();
+  openModal({ title:'Add Person', body:`Add "${name}" to people?`, confirmText:'Add', requirePassword:true }).then(res => {
+    if(res.ok){
+      if(state.settings.people.includes(name)){ alert('Already exists'); return; }
+      state.settings.people.push(name);
+      saveAll(); newPersonInput.value=''; populateSettingsUI(); renderEntries();
+    }
+  });
 });
-
-/* add category */
 addCategoryBtn.addEventListener('click', ()=> {
   const name = newCategoryInput.value.trim();
   if(!name){ alert('Enter a category'); return; }
-  if(!requirePassword('Enter password to add category:')) return;
-  if(state.settings.categories.includes(name)){ alert('Category already exists'); return; }
-  state.settings.categories.push(name);
-  saveState();
-  newCategoryInput.value = '';
-  populateSettingsUI();
+  openModal({ title:'Add Category', body:`Add "${name}" to categories?`, confirmText:'Add', requirePassword:true }).then(res => {
+    if(res.ok){
+      if(state.settings.categories.includes(name)){ alert('Already exists'); return; }
+      state.settings.categories.push(name);
+      saveAll(); newCategoryInput.value=''; populateSettingsUI(); renderEntries();
+    }
+  });
 });
 
-/* delete person / category via delegated events */
+/* delete person/category using delegation */
 peopleList.addEventListener('click', (ev) => {
   if(ev.target.matches('.del-person')){
-    const idx = Number(ev.target.dataset.index);
-    if(!requirePassword('Enter password to delete person:')) return;
+    const idx = Number(ev.target.dataset.idx);
     const name = state.settings.people[idx];
-    // optional: prevent deleting last person
-    if(state.settings.people.length <= 1){ alert('At least one person required'); return; }
-    state.settings.people.splice(idx,1);
-    // update entries that referenced that person to first available person
-    const fallback = state.settings.people[0];
-    state.entries = state.entries.map(en => en.person === name ? {...en, person: fallback} : en);
-    saveState();
-    populateSettingsUI();
-    renderEntries();
+    openModal({ title:'Delete person', body:`Delete person "${name}"? Existing entries will be reassigned to the first person.`, confirmText:'Delete', requirePassword:true }).then(res=>{
+      if(res.ok){
+        if(state.settings.people.length <= 1){ alert('At least one person required'); return; }
+        state.settings.people.splice(idx,1);
+        const fallback = state.settings.people[0];
+        state.entries = state.entries.map(en => en.person === name ? ({...en, person: fallback}) : en);
+        saveAll(); populateSettingsUI(); renderEntries();
+      }
+    });
   }
 });
 
 categoryList.addEventListener('click', (ev) => {
   if(ev.target.matches('.del-cat')){
-    const idx = Number(ev.target.dataset.index);
-    if(!requirePassword('Enter password to delete category:')) return;
+    const idx = Number(ev.target.dataset.idx);
     const name = state.settings.categories[idx];
-    state.settings.categories.splice(idx,1);
-    // update entries that referenced that category to 'General' (or first category)
-    const fallback = state.settings.categories[0] || 'General';
-    state.entries = state.entries.map(en => en.category === name ? {...en, category: fallback} : en);
-    saveState();
-    populateSettingsUI();
-    renderEntries();
+    openModal({ title:'Delete category', body:`Delete category "${name}"? Existing entries will be reassigned to first category or "General".`, confirmText:'Delete', requirePassword:true }).then(res=>{
+      if(res.ok){
+        state.settings.categories.splice(idx,1);
+        const fallback = state.settings.categories[0] || 'General';
+        state.entries = state.entries.map(en => en.category === name ? ({...en, category: fallback}) : en);
+        saveAll(); populateSettingsUI(); renderEntries();
+      }
+    });
   }
 });
 
-/* ========== Init render ========== */
-populateSettingsUI();
-renderEntries();
-showScreen('home');
+/* ========== export/import CSV ========== */
+function exportCSV(){
+  if(!state.entries.length){ alert('No entries to export'); return; }
+  const rows = [['id','date','person','type','category','description','amount']];
+  state.entries.forEach(r => rows.push([r.id, r.date, r.person, r.type, r.category, (r.description||'').replace(/\n/g,' '), r.amount]));
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'entries.csv'; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+}
+exportBtn.addEventListener('click', exportCSV);
 
-/* show top small summary when switching screens */
-document.querySelectorAll('.screen').forEach(s => s.addEventListener('transitionend', renderEntries));
+importFile.addEventListener('change', (ev) => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    try {
+      const parsed = parseCSV(text);
+      if(!parsed.length) { alert('CSV seems empty'); return; }
+      // expected headers check (id optional)
+      const headers = parsed[0].map(h => h.toLowerCase().trim());
+      const required = ['date','person','type','category','amount'];
+      const missing = required.filter(r => !headers.includes(r));
+      if(missing.length) { alert('Missing required columns: ' + missing.join(', ')); return; }
+      openModal({ title:'Import CSV', body:`Import ${parsed.length-1} rows? This will append entries.`, confirmText:'Import', requirePassword:true }).then(res=>{
+        if(res.ok){
+          const hdrMap = {};
+          headers.forEach((h,i)=> hdrMap[h]=i);
+          for(let i=1;i<parsed.length;i++){
+            const row = parsed[i];
+            const newEntry = {
+              id: row[hdrMap['id']] && row[hdrMap['id']].trim() ? row[hdrMap['id']].trim() : uid(),
+              date: row[hdrMap['date']].trim(),
+              person: row[hdrMap['person']].trim(),
+              type: row[hdrMap['type']].trim(),
+              category: row[hdrMap['category']].trim(),
+              description: hdrMap['description'] ? (row[hdrMap['description']]||'').trim() : '',
+              amount: row[hdrMap['amount']].trim()
+            };
+            // basic validation date and amount
+            if(!newEntry.date || !newEntry.amount) continue;
+            state.entries.push(newEntry);
+          }
+          saveAll(); renderEntries(); alert('Import completed');
+        }
+      });
+    } catch(err){
+      alert('Failed to import CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = null;
+});
 
-/* expose some shortcuts for ease */
+function parseCSV(text){
+  // simple CSV parser supporting quoted fields
+  const rows = [];
+  let cur = '', row = [], inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ cur += '"'; i++; } else { inQuotes = false; }
+      } else cur += ch;
+    } else {
+      if(ch === '"'){ inQuotes = true; }
+      else if(ch === ','){ row.push(cur); cur=''; }
+      else if(ch === '\r'){ continue; }
+      else if(ch === '\n'){ row.push(cur); rows.push(row); cur=''; row=[]; }
+      else cur += ch;
+    }
+  }
+  if(cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+
+/* ========== Print monthly report ========== */
+printReportBtn.addEventListener('click', () => {
+  const mon = monthFilter.value || monthISO();
+  const entries = state.entries.filter(e => e.date && e.date.startsWith(mon)).sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const inc = entries.filter(e=> e.type==='Income').reduce((s,e)=> s + Number(e.amount),0);
+  const exp = entries.filter(e=> e.type==='Expense').reduce((s,e)=> s + Number(e.amount),0);
+  const saved = inc - exp;
+
+  // build HTML
+  const html = `
+    <div style="font-family:Inter,Arial;margin:24px">
+      <h1>Monthly Report — ${ new Date(mon + '-01').toLocaleString(undefined,{ month:'long', year:'numeric' }) }</h1>
+      <p>Income: ${inc.toFixed(2)} · Expense: ${exp.toFixed(2)} · Saved: ${saved.toFixed(2)}</p>
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin-top:12px">
+        <thead><tr style="background:#f3f6fb"><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+          ${ entries.map(e => `<tr><td>${e.date}</td><td>${e.person}</td><td>${e.type}</td><td>${e.category}</td><td>${e.description||''}</td><td style="text-align:right">${Number(e.amount).toFixed(2)}</td></tr>`).join('') }
+        </tbody>
+      </table>
+    </div>
+  `;
+  // open new window and print
+  const w = window.open('', '_blank', 'noopener,noreferrer');
+  w.document.write(html);
+  w.document.close();
+  // wait a bit for render then print (some browsers block auto print but usually works)
+  setTimeout(()=> { w.print(); }, 300);
+});
+
+/* ========== init / render ========== */
+function init(){
+  populateSettingsUI();
+  renderEntries();
+  showScreen('home');
+}
+init();
+
+/* ========== helpers for settings populate & events ========== */
+function populateSettingsUI(){
+  personSelect.innerHTML = '';
+  peopleList.innerHTML = '';
+  state.settings.people.forEach((p, idx) => {
+    const opt = document.createElement('option'); opt.value = p; opt.textContent = p; personSelect.appendChild(opt);
+    const div = document.createElement('div'); div.className='item'; div.innerHTML = `<div>${p}</div><div><button data-idx="${idx}" class="del-person">Delete</button></div>`;
+    peopleList.appendChild(div);
+  });
+
+  categorySelect.innerHTML = '';
+  categoryList.innerHTML = '';
+  state.settings.categories.forEach((c, idx) => {
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; categorySelect.appendChild(opt);
+    const div = document.createElement('div'); div.className='item'; div.innerHTML = `<div>${c}</div><div><button data-idx="${idx}" class="del-cat">Delete</button></div>`;
+    categoryList.appendChild(div);
+  });
+}
+
+/* delegation for delete buttons in settings lists */
+peopleList.addEventListener('click', (ev) => {
+  if(ev.target.matches('.del-person')){
+    const idx = Number(ev.target.dataset.idx);
+    const name = state.settings.people[idx];
+    openModal({ title:'Delete person', body:`Delete "${name}"? Entries will be reassigned.`, confirmText:'Delete', requirePassword:true }).then(res=>{
+      if(res.ok){
+        if(state.settings.people.length <= 1){ alert('At least one person required'); return; }
+        state.settings.people.splice(idx,1);
+        const fallback = state.settings.people[0];
+        state.entries = state.entries.map(en => en.person === name ? ({...en, person: fallback}) : en);
+        saveAll(); populateSettingsUI(); renderEntries();
+      }
+    });
+  }
+});
+categoryList.addEventListener('click', (ev) => {
+  if(ev.target.matches('.del-cat')){
+    const idx = Number(ev.target.dataset.idx);
+    const name = state.settings.categories[idx];
+    openModal({ title:'Delete category', body:`Delete "${name}"? Entries will be reassigned.`, confirmText:'Delete', requirePassword:true }).then(res=>{
+      if(res.ok){
+        state.settings.categories.splice(idx,1);
+        const fallback = state.settings.categories[0] || 'General';
+        state.entries = state.entries.map(en => en.category === name ? ({...en, category: fallback}) : en);
+        saveAll(); populateSettingsUI(); renderEntries();
+      }
+    });
+  }
+});
+
+/* add new handlers already wired earlier; ensure saveAll on settings change */
+addPersonBtn.addEventListener('click', () => {
+  const name = newPersonInput.value.trim();
+  if(!name){ alert('Enter a name'); return; }
+  openModal({ title:'Add person', body:`Add "${name}"?`, confirmText:'Add', requirePassword:true }).then(res=>{
+    if(res.ok){
+      if(state.settings.people.includes(name)){ alert('Exists'); return; }
+      state.settings.people.push(name);
+      saveAll(); newPersonInput.value=''; populateSettingsUI(); renderEntries();
+    }
+  });
+});
+addCategoryBtn.addEventListener('click', () => {
+  const name = newCategoryInput.value.trim();
+  if(!name){ alert('Enter a category'); return; }
+  openModal({ title:'Add category', body:`Add "${name}"?`, confirmText:'Add', requirePassword:true }).then(res=>{
+    if(res.ok){
+      if(state.settings.categories.includes(name)){ alert('Exists'); return; }
+      state.settings.categories.push(name);
+      saveAll(); newCategoryInput.value=''; populateSettingsUI(); renderEntries();
+    }
+  });
+});
+
+/* keyboard shortcuts */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'h') showScreen('home');
   if(e.key === 'e') showScreen('entry');
   if(e.key === 's') showScreen('settings');
 });
+
+/* make sure UI reflects latest on load */
+populateSettingsUI();
+renderEntries();
 
 </script>
 </body>
