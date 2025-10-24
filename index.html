@@ -1,173 +1,737 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Couple Income & Expense Tracker</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Couple Income & Expense Tracker — SPA</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; padding: 40px; max-width: 1200px; margin: auto; background: #f5f5f5; }
-  h2 { color: #333; text-align: center; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-  th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-  th { background: #eee; }
-  input, select, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-  input:focus, select:focus { outline: 2px solid #2196f3; }
-  button { cursor: pointer; background-color: #4caf50; color: white; border: none; transition: background 0.3s; }
-  button:hover { background-color: #45a049; }
-  .dashboard { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; width: 100%; }
-  .summary { font-weight: bold; flex: 1; min-width: 250px; }
-  #dashboardChart { flex: 2; width: 100%; max-width: 700px; max-height: 300px; margin-left: 20px; }
-  .income { background-color: #e8f5e9; }
-  .expense { background-color: #ffebee; }
-  #entriesTable tbody tr:hover { background-color: #f1f1f1; }
-  .form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
-  .form-row input, .form-row select { flex: 1; min-width: 150px; }
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --muted:#7b8a9a;
+    --green:#4caf50; --red:#f44336; --blue:#2196f3;
+    --shadow: 0 6px 18px rgba(20,30,50,0.08);
+    --radius: 12px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg,#f5f7fb 0%, #f1f4f9 100%);
+    color:#1f2937;
+    padding:36px;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  .app {
+    width:1100px;
+    max-width:100%;
+    margin:0 auto;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  header h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:0.2px;
+  }
+  .screen {
+    display:none;
+    background:transparent;
+    transition:opacity .28s ease, transform .28s ease;
+  }
+  .screen.active{
+    display:block;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+
+  /* HOME */
+  .home-hero{
+    height:520px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    gap:18px;
+  }
+  .home-center{
+    text-align:center;
+  }
+  .home-center p{color:var(--muted); margin-top:8px}
+
+  /* split circular button */
+  .add-btn {
+    position:relative;
+    width:160px;
+    height:160px;
+    border-radius:80px;
+    box-shadow:0 8px 26px rgba(16,24,40,0.12);
+    overflow:hidden;
+    cursor:pointer;
+    transition: transform .22s ease;
+    display:inline-block;
+    user-select:none;
+  }
+  .add-btn:hover { transform: scale(1.05); }
+  .add-btn .half {
+    position:absolute;
+    top:0;
+    width:50%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:600;
+    font-size:18px;
+    padding:6px;
+  }
+  .add-btn .half.income { left:0; background: linear-gradient(180deg, rgba(76,175,80,0.95), rgba(56,142,60,0.95)); }
+  .add-btn .half.expense { right:0; background: linear-gradient(180deg, rgba(244,67,54,0.95), rgba(211,47,47,0.95)); }
+  .add-btn .half small { display:block; font-size:12px; opacity:0.9; margin-top:6px; font-weight:500; }
+
+  .gear {
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:44px;
+    height:44px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--card);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+  }
+  .nav-back{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:8px 12px;
+    border-radius:10px;
+    background:var(--card);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+  }
+
+  /* ENTRY PAGE LAYOUT */
+  .entry-layout{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  .left-col{display:flex;flex-direction:column;gap:14px}
+  .summary{
+    padding:14px;
+    border-radius:10px;
+    background:linear-gradient(180deg,#fff,#fbfdff);
+  }
+  .summary p{margin:8px 0; font-weight:700; font-size:16px}
+  .summary span{display:inline-block; min-width:120px; font-weight:800; text-align:right}
+
+  form .form-row{
+    display:flex; gap:8px; align-items:center; margin-bottom:10px;
+  }
+  form input, form select, form button {
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #e2e8f0;
+    background:white;
+    font-size:14px;
+  }
+  form label{font-weight:600; font-size:13px; color:var(--muted)}
+
+  /* table */
+  table { width:100%; border-collapse:collapse; font-size:14px; background:var(--card); border-radius:8px; overflow:hidden;}
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #f1f5f9; }
+  thead th { background:#fafbff; font-weight:700; color:#334155; }
+  tr.income td { background: linear-gradient(90deg, rgba(237,252,245,0.8), transparent); }
+  tr.expense td { background: linear-gradient(90deg, rgba(255,240,240,0.9), transparent); }
+  td.actions { display:flex; gap:8px; }
+
+  .small-muted{ color:var(--muted); font-size:13px }
+
+  /* SETTINGS */
+  .list { display:flex; flex-direction:column; gap:8px; }
+  .list .item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:8px; background:#fff; border:1px solid #eef2f7; }
+  .danger { background:linear-gradient(90deg,#fff3f3,#fff); border-color:#ffdddd }
+
+  /* responsive */
+  @media (max-width:980px){
+    .entry-layout{ grid-template-columns:1fr; }
+    .add-btn { width:140px; height:140px; border-radius:70px; }
+  }
 </style>
 </head>
 <body>
+  <div class="app">
 
-<h2>Income & Expense Tracker</h2>
+    <header>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button id="goHome" class="nav-back" title="Home" style="display:none">🏠 Home</button>
+        <h1>Couple Income & Expense Tracker</h1>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div id="topSummary" class="small-muted" style="display:none"></div>
+        <div id="gear" class="gear" title="Settings">⚙️</div>
+      </div>
+    </header>
 
-<div class="dashboard">
-  <div class="summary">
-    <p>Total Income: <span id="totalIncome">0</span></p>
-    <p>Total Expense: <span id="totalExpense">0</span></p>
-    <p>Saved Amount: <span id="savedAmount">0</span></p>
+    <!-- HOME SCREEN -->
+    <main id="homeScreen" class="screen active">
+      <div class="card home-hero">
+        <div class="home-center">
+          <h2 style="margin:0">Welcome back 👋</h2>
+          <p>Quick add — choose Income or Expense</p>
+          <div style="margin-top:18px">
+            <div class="add-btn" aria-label="Add income or expense">
+              <div class="half income" id="homeIncomeBtn">
+                Income
+                <small>+ Add money</small>
+              </div>
+              <div class="half expense" id="homeExpenseBtn">
+                Expense
+                <small>- Add spend</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ENTRY SCREEN -->
+    <section id="entryScreen" class="screen">
+      <div class="card entry-layout">
+        <div class="left-col">
+          <div class="summary card">
+            <p>Monthly Summary (filtered)</p>
+            <p>Total Income: <span id="totalIncomeLeft">0.00</span></p>
+            <p>Total Expense: <span id="totalExpenseLeft">0.00</span></p>
+            <p>Saved: <span id="savedLeft" style="color:green">0.00</span></p>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 12px 0">Add / Edit Entry</h3>
+            <form id="entryForm">
+              <div class="form-row">
+                <label style="width:100%">Date
+                  <input type="date" id="date" required>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label style="flex:1">Person
+                  <select id="person"></select>
+                </label>
+                <label style="flex:1">Type
+                  <select id="type">
+                    <option>Income</option>
+                    <option>Expense</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label style="flex:1">Category
+                  <select id="category"></select>
+                </label>
+                <label style="flex:1">Amount
+                  <input type="number" id="amount" step="0.01" required>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label style="width:100%">Description
+                  <input type="text" id="description" placeholder="Optional note">
+                </label>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button type="submit" id="saveEntryBtn" style="background:var(--blue);color:white">Save Entry</button>
+                <button type="button" id="cancelEditBtn">Clear</button>
+              </div>
+
+            </form>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 12px 0">Filter & Reset</h3>
+            <div class="form-row">
+              <label style="flex:1">Filter by month
+                <input type="month" id="monthFilter">
+              </label>
+              <button id="resetMonthBtn" style="background:#ef4444;color:white">Reset Month</button>
+            </div>
+            <p class="small-muted" style="margin-top:8px">Reset removes all entries for the selected month (password required).</p>
+          </div>
+
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">Dashboard</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <div class="small-muted" id="dashboardDate"></div>
+                <button id="backToHome" class="nav-back" style="display:inline-flex">← Home</button>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <canvas id="dashboardChart" style="height:240px"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 12px 0">Entries</h3>
+            <table id="entriesTable">
+              <thead>
+                <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th style="width:110px">Amount</th><th>Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS SCREEN -->
+    <section id="settingsScreen" class="screen">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 style="margin:0">Settings</h2>
+          <div style="display:flex;gap:8px">
+            <button id="settingsBack" class="nav-back">← Back</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <h3 style="margin:0 0 10px 0">People</h3>
+            <div class="list" id="peopleList"></div>
+
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <input id="newPersonInput" placeholder="New person name">
+              <button id="addPersonBtn" style="background:var(--blue);color:white">Add</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 10px 0">Categories</h3>
+            <div class="list" id="categoryList"></div>
+
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <input id="newCategoryInput" placeholder="New category name">
+              <button id="addCategoryBtn" style="background:var(--blue);color:white">Add</button>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="small-muted" style="margin-top:12px">Any changes in settings require the password.</p>
+      </div>
+    </section>
+
   </div>
-  <canvas id="dashboardChart"></canvas>
-</div>
-
-<h3>Add Entry</h3>
-<form id="entryForm">
-  <div class="form-row">
-    <input type="date" id="date" required>
-    <select id="person" required>
-      <option value="Miu">Miu</option>
-      <option value="Raya">Raya</option>
-    </select>
-    <select id="type" required>
-      <option value="Income">Income</option>
-      <option value="Expense">Expense</option>
-    </select>
-    <select id="category" required>
-      <option value="House">House</option>
-      <option value="Transport">Transport</option>
-      <option value="Personal">Personal</option>
-      <option value="General">General</option>
-    </select>
-  </div>
-  <div class="form-row">
-    <input type="text" id="description" placeholder="Description">
-    <input type="number" id="amount" placeholder="Amount" required>
-    <button type="submit">Add Entry</button>
-  </div>
-</form>
-
-<div class="form-row">
-  <label for="monthFilter">Filter by Month:</label>
-  <input type="month" id="monthFilter">
-  <button onclick="resetMonthData()">Reset Month Data</button>
-</div>
-
-<h3>Entries</h3>
-<table id="entriesTable">
-  <thead>
-    <tr><th>Date</th><th>Person</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
 
 <script>
-let entries = JSON.parse(localStorage.getItem('entries')) || [];
-const password = '12247';
+/* =========================
+   App state & storage keys
+   ========================= */
+const STORAGE_KEYS = {
+  entries: 'ce_entries_v1',
+  settings: 'ce_settings_v1'
+};
+const PASSWORD = '12247';
+
+let state = {
+  entries: JSON.parse(localStorage.getItem(STORAGE_KEYS.entries) || '[]'),
+  settings: JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || 'null'),
+  editingId: null
+};
+
+// default settings if none
+if(!state.settings){
+  state.settings = {
+    people: ['Miu','Raya'],
+    categories: ['House','Transport','Personal','General']
+  };
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+}
+
+/* ==== UI refs ==== */
+const homeScreen = document.getElementById('homeScreen');
+const entryScreen = document.getElementById('entryScreen');
+const settingsScreen = document.getElementById('settingsScreen');
+const goHomeBtn = document.getElementById('goHome');
+const gearBtn = document.getElementById('gear');
+const backToHomeBtn = document.getElementById('backToHome');
+const settingsBackBtn = document.getElementById('settingsBack');
+
+const homeIncomeBtn = document.getElementById('homeIncomeBtn');
+const homeExpenseBtn = document.getElementById('homeExpenseBtn');
+
+const personSelect = document.getElementById('person');
+const categorySelect = document.getElementById('category');
+const dateInput = document.getElementById('date');
+const typeSelect = document.getElementById('type');
+const amountInput = document.getElementById('amount');
+const descInput = document.getElementById('description');
+const entryForm = document.getElementById('entryForm');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+const monthFilter = document.getElementById('monthFilter');
+const resetMonthBtn = document.getElementById('resetMonthBtn');
+
+const entriesTableBody = document.querySelector('#entriesTable tbody');
+const totalIncomeLeft = document.getElementById('totalIncomeLeft');
+const totalExpenseLeft = document.getElementById('totalExpenseLeft');
+const savedLeft = document.getElementById('savedLeft');
+const dashboardDate = document.getElementById('dashboardDate');
+const topSummary = document.getElementById('topSummary');
+
+const peopleList = document.getElementById('peopleList');
+const categoryList = document.getElementById('categoryList');
+const newPersonInput = document.getElementById('newPersonInput');
+const newCategoryInput = document.getElementById('newCategoryInput');
+const addPersonBtn = document.getElementById('addPersonBtn');
+const addCategoryBtn = document.getElementById('addCategoryBtn');
+
+const saveEntryBtn = document.getElementById('saveEntryBtn');
+
+/* Chart */
 let chart;
 
-function saveEntries() {
-  localStorage.setItem('entries', JSON.stringify(entries));
+/* ========== Helpers ============ */
+function saveState() {
+  localStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(state.entries));
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
 }
 
-function renderTable() {
-  const monthFilter = document.getElementById('monthFilter').value;
-  entries.sort((a,b) => new Date(a.date) - new Date(b.date));
-  const tbody = document.querySelector('#entriesTable tbody');
-  tbody.innerHTML = '';
+function uid() { return 'id_' + Math.random().toString(36).slice(2,9); }
 
-  let totalIncome = 0;
-  let totalExpense = 0;
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if(name === 'home') homeScreen.classList.add('active');
+  if(name === 'entry') entryScreen.classList.add('active');
+  if(name === 'settings') settingsScreen.classList.add('active');
 
-  entries.forEach(e => {
-    if(monthFilter && !e.date.startsWith(monthFilter)) return;
+  // header buttons visibility
+  goHomeBtn.style.display = (name === 'home') ? 'none' : 'inline-flex';
+  backToHomeBtn.style.display = (name === 'entry') ? 'inline-flex' : 'none';
+  topSummary.style.display = (name !== 'home') ? 'inline-block' : 'none';
+  gearBtn.style.display = (name === 'home') ? 'inline-block' : 'none';
+}
 
-    const row = document.createElement('tr');
-    row.className = e.type === 'Income' ? 'income' : 'expense';
-    row.innerHTML = `<td>${e.date}</td><td>${e.person}</td><td>${e.type}</td><td>${e.category}</td><td>${e.description}</td><td>${e.amount}</td>`;
-    tbody.appendChild(row);
+/* date helpers */
+function monthOf(dateStr){
+  if(!dateStr) return '';
+  return dateStr.slice(0,7);
+}
 
-    const amt = parseFloat(e.amount);
-    if(e.type === 'Income') totalIncome += amt;
-    else totalExpense += amt;
+/* ========== INITIALIZE UI ========== */
+function populateSettingsUI(){
+  // person select & list
+  personSelect.innerHTML = '';
+  peopleList.innerHTML = '';
+  state.settings.people.forEach((p, idx) => {
+    const opt = document.createElement('option'); opt.value = p; opt.textContent = p;
+    personSelect.appendChild(opt);
+
+    const item = document.createElement('div'); item.className='item';
+    item.innerHTML = `<div>${p}</div><div><button data-index="${idx}" class="del-person" style="background:#ffdddd;border-radius:6px;padding:6px 8px">Delete</button></div>`;
+    peopleList.appendChild(item);
   });
 
-  document.getElementById('totalIncome').textContent = totalIncome;
-  document.getElementById('totalExpense').textContent = totalExpense;
-  document.getElementById('savedAmount').textContent = totalIncome - totalExpense;
+  // category select & list
+  categorySelect.innerHTML = '';
+  categoryList.innerHTML = '';
+  state.settings.categories.forEach((c, idx) => {
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+    categorySelect.appendChild(opt);
 
-  renderChart(totalIncome, totalExpense);
+    const item = document.createElement('div'); item.className='item';
+    item.innerHTML = `<div>${c}</div><div><button data-index="${idx}" class="del-cat" style="background:#ffdddd;border-radius:6px;padding:6px 8px">Delete</button></div>`;
+    categoryList.appendChild(item);
+  });
 }
 
-function renderChart(income, expense) {
+/* ========== Entries rendering & chart ========== */
+function getFilteredEntries(){
+  const mon = monthFilter.value;
+  if(!mon) return state.entries.slice().sort((a,b)=> new Date(a.date)-new Date(b.date));
+  return state.entries.filter(e => e.date && e.date.startsWith(mon)).sort((a,b)=> new Date(a.date)-new Date(b.date));
+}
+
+function renderEntries(){
+  const list = getFilteredEntries();
+  entriesTableBody.innerHTML = '';
+
+  let inc = 0, exp = 0;
+  list.forEach(e => {
+    const tr = document.createElement('tr');
+    tr.className = e.type === 'Income' ? 'income' : 'expense';
+    tr.innerHTML = `
+      <td>${e.date}</td>
+      <td>${e.person}</td>
+      <td>${e.type}</td>
+      <td>${e.category}</td>
+      <td>${e.description || ''}</td>
+      <td style="text-align:right">${parseFloat(e.amount).toFixed(2)}</td>
+      <td class="actions">
+        <button data-id="${e.id}" class="editBtn">Edit</button>
+        <button data-id="${e.id}" class="delBtn" style="background:#fee2e2">Delete</button>
+      </td>
+    `;
+    entriesTableBody.appendChild(tr);
+    if(e.type === 'Income') inc += Number(e.amount || 0);
+    else exp += Number(e.amount || 0);
+  });
+
+  totalIncomeLeft.textContent = inc.toFixed(2);
+  totalExpenseLeft.textContent = exp.toFixed(2);
+  const saved = inc - exp;
+  savedLeft.textContent = saved.toFixed(2);
+  savedLeft.style.color = saved >= 0 ? 'green' : 'red';
+
+  // top summary small
+  topSummary.textContent = `Income: ${inc.toFixed(2)} · Expense: ${exp.toFixed(2)} · Saved: ${saved.toFixed(2)}`;
+
+  renderChart(inc, exp);
+
+  // attach edit/delete handlers
+  document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', onEditEntry));
+  document.querySelectorAll('.delBtn').forEach(btn => btn.addEventListener('click', onDeleteEntry));
+}
+
+function renderChart(income, expense){
   const ctx = document.getElementById('dashboardChart').getContext('2d');
   if(chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels: ['Income', 'Expense', 'Saved'],
-      datasets: [{
-        label: 'Monthly Totals',
-        data: [income, expense, income - expense],
-        backgroundColor: ['#4caf50', '#f44336', '#2196f3']
+    data:{
+      labels: ['Income','Expense','Saved'],
+      datasets:[{
+        label:'Monthly Totals',
+        data:[income, expense, income - expense],
+        backgroundColor:[getComputedStyle(document.documentElement).getPropertyValue('--green') || '#4caf50',
+                         getComputedStyle(document.documentElement).getPropertyValue('--red') || '#f44336',
+                         getComputedStyle(document.documentElement).getPropertyValue('--blue') || '#2196f3']
       }]
     },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}
   });
 }
 
-function resetMonthData() {
-  const month = document.getElementById('monthFilter').value;
-  if(!month) { alert('Please select a month to reset.'); return; }
-  const pwd = prompt('Enter password to reset month data:');
-  if(pwd !== password) { alert('Incorrect password'); return; }
-  entries = entries.filter(e => !e.date.startsWith(month));
-  saveEntries();
-  renderTable();
-  alert('Month data reset successfully');
+/* ========== Entry CRUD ========== */
+function onEditEntry(e){
+  const id = e.currentTarget.dataset.id;
+  const item = state.entries.find(x=>x.id===id);
+  if(!item) return;
+  state.editingId = id;
+  dateInput.value = item.date;
+  personSelect.value = item.person;
+  typeSelect.value = item.type;
+  categorySelect.value = item.category;
+  amountInput.value = parseFloat(item.amount).toFixed(2);
+  descInput.value = item.description || '';
+  saveEntryBtn.textContent = 'Update Entry';
+  // navigate to top of entry area
+  showScreen('entry');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-renderTable();
+function onDeleteEntry(e){
+  const id = e.currentTarget.dataset.id;
+  if(!confirm('Delete this entry?')) return;
+  state.entries = state.entries.filter(x=>x.id !== id);
+  saveState();
+  renderEntries();
+}
 
-document.getElementById('entryForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const newEntry = {
-    date: document.getElementById('date').value,
-    person: document.getElementById('person').value,
-    type: document.getElementById('type').value,
-    category: document.getElementById('category').value,
-    description: document.getElementById('description').value,
-    amount: document.getElementById('amount').value
-  };
+/* submit */
+entryForm.addEventListener('submit', function(ev){
+  ev.preventDefault();
+  const date = dateInput.value;
+  const person = personSelect.value;
+  const type = typeSelect.value;
+  const category = categorySelect.value;
+  const amount = parseFloat(amountInput.value || 0).toFixed(2);
+  const description = descInput.value;
 
-  const duplicate = entries.some(en => en.date === newEntry.date && en.category === newEntry.category);
-  if(duplicate && !confirm('An entry with the same date and category exists. Add anyway?')) return;
+  if(!date || !amount){ alert('Date and amount required'); return; }
 
-  entries.push(newEntry);
-  saveEntries();
-  renderTable();
-  document.getElementById('entryForm').reset();
+  if(state.editingId){
+    const idx = state.entries.findIndex(x=>x.id===state.editingId);
+    if(idx >= 0){
+      state.entries[idx] = { id: state.editingId, date, person, type, category, amount, description };
+      state.editingId = null;
+    }
+  } else {
+    state.entries.push({ id: uid(), date, person, type, category, amount, description });
+  }
+
+  saveState();
+  entryForm.reset();
+  saveEntryBtn.textContent = 'Save Entry';
+  renderEntries();
 });
 
-document.getElementById('monthFilter').addEventListener('change', renderTable);
-</script>
+/* cancel / clear */
+cancelEditBtn.addEventListener('click', () => {
+  state.editingId = null;
+  entryForm.reset();
+  saveEntryBtn.textContent = 'Save Entry';
+});
 
+/* ========== Home / Navigation actions ========== */
+homeIncomeBtn.addEventListener('click', () => {
+  openEntryWithType('Income');
+});
+homeExpenseBtn.addEventListener('click', () => {
+  openEntryWithType('Expense');
+});
+function openEntryWithType(t){
+  showScreen('entry');
+  // set default date to today
+  const now = new Date();
+  dateInput.value = now.toISOString().slice(0,10);
+  typeSelect.value = t;
+  // preselect current month in filter
+  monthFilter.value = now.toISOString().slice(0,7);
+  renderEntries();
+  // scroll to form
+  setTimeout(()=> {
+    window.scrollTo({ top: 100, behavior:'smooth' });
+  }, 150);
+}
+
+/* navigation */
+goHomeBtn.addEventListener('click', ()=> showScreen('home'));
+backToHomeBtn.addEventListener('click', ()=> showScreen('home'));
+gearBtn.addEventListener('click', ()=> {
+  showScreen('settings');
+  populateSettingsUI();
+});
+settingsBackBtn.addEventListener('click', ()=> showScreen('entry'));
+
+/* top nav Home button behavior */
+document.getElementById('goHome').addEventListener('click', ()=> showScreen('home'));
+document.getElementById('backToHome').addEventListener('click', ()=> showScreen('home'));
+
+/* set default current month on load */
+(function setDefaultMonth(){
+  const now = new Date();
+  monthFilter.value = now.toISOString().slice(0,7);
+  dashboardDate.textContent = now.toLocaleString(undefined,{month:'long', year:'numeric'});
+})();
+
+/* month filter & reset */
+monthFilter.addEventListener('change', renderEntries);
+resetMonthBtn.addEventListener('click', ()=> {
+  const mon = monthFilter.value;
+  if(!mon){ alert('Select month to reset'); return; }
+  const pwd = prompt('Enter password to reset month data:');
+  if(pwd !== PASSWORD){ alert('Incorrect password'); return; }
+  state.entries = state.entries.filter(e => !e.date.startsWith(mon));
+  saveState();
+  renderEntries();
+  alert('Month data reset successfully');
+});
+
+/* ========== Settings management (password-protected) ========== */
+function requirePassword(promptText){
+  const pwd = prompt(promptText || 'Enter password:');
+  if(pwd === PASSWORD) return true;
+  alert('Incorrect password');
+  return false;
+}
+
+/* add person */
+addPersonBtn.addEventListener('click', ()=> {
+  const name = newPersonInput.value.trim();
+  if(!name){ alert('Enter a name'); return; }
+  if(!requirePassword('Enter password to add person:')) return;
+  if(state.settings.people.includes(name)){ alert('Person already exists'); return; }
+  state.settings.people.push(name);
+  saveState();
+  newPersonInput.value = '';
+  populateSettingsUI();
+});
+
+/* add category */
+addCategoryBtn.addEventListener('click', ()=> {
+  const name = newCategoryInput.value.trim();
+  if(!name){ alert('Enter a category'); return; }
+  if(!requirePassword('Enter password to add category:')) return;
+  if(state.settings.categories.includes(name)){ alert('Category already exists'); return; }
+  state.settings.categories.push(name);
+  saveState();
+  newCategoryInput.value = '';
+  populateSettingsUI();
+});
+
+/* delete person / category via delegated events */
+peopleList.addEventListener('click', (ev) => {
+  if(ev.target.matches('.del-person')){
+    const idx = Number(ev.target.dataset.index);
+    if(!requirePassword('Enter password to delete person:')) return;
+    const name = state.settings.people[idx];
+    // optional: prevent deleting last person
+    if(state.settings.people.length <= 1){ alert('At least one person required'); return; }
+    state.settings.people.splice(idx,1);
+    // update entries that referenced that person to first available person
+    const fallback = state.settings.people[0];
+    state.entries = state.entries.map(en => en.person === name ? {...en, person: fallback} : en);
+    saveState();
+    populateSettingsUI();
+    renderEntries();
+  }
+});
+
+categoryList.addEventListener('click', (ev) => {
+  if(ev.target.matches('.del-cat')){
+    const idx = Number(ev.target.dataset.index);
+    if(!requirePassword('Enter password to delete category:')) return;
+    const name = state.settings.categories[idx];
+    state.settings.categories.splice(idx,1);
+    // update entries that referenced that category to 'General' (or first category)
+    const fallback = state.settings.categories[0] || 'General';
+    state.entries = state.entries.map(en => en.category === name ? {...en, category: fallback} : en);
+    saveState();
+    populateSettingsUI();
+    renderEntries();
+  }
+});
+
+/* ========== Init render ========== */
+populateSettingsUI();
+renderEntries();
+showScreen('home');
+
+/* show top small summary when switching screens */
+document.querySelectorAll('.screen').forEach(s => s.addEventListener('transitionend', renderEntries));
+
+/* expose some shortcuts for ease */
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'h') showScreen('home');
+  if(e.key === 'e') showScreen('entry');
+  if(e.key === 's') showScreen('settings');
+});
+
+</script>
 </body>
 </html>
